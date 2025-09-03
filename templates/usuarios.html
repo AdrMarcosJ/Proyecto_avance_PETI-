@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios - Sistema de Login{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12 mb-4">
+        <div class="card card-custom">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-6 fw-bold text-primary mb-2">
+                            <i class="fas fa-users me-3"></i>
+                            Gestión de Usuarios
+                        </h1>
+                        <p class="text-muted mb-0">
+                            Lista de todos los usuarios registrados en el sistema
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="{{ url_for('register') }}" class="btn btn-success btn-custom">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Nuevo Usuario
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom border-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users text-primary mb-2" style="font-size: 2rem;"></i>
+                        <h4 class="text-primary fw-bold">{{ usuarios|length }}</h4>
+                        <p class="text-muted mb-0">Total Usuarios</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom border-success">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-check text-success mb-2" style="font-size: 2rem;"></i>
+                        <h4 class="text-success fw-bold">{{ usuarios|length }}</h4>
+                        <p class="text-muted mb-0">Usuarios Activos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom border-info">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-shield text-info mb-2" style="font-size: 2rem;"></i>
+                        <h4 class="text-info fw-bold">1</h4>
+                        <p class="text-muted mb-0">Administradores</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom border-warning">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock text-warning mb-2" style="font-size: 2rem;"></i>
+                        <h4 class="text-warning fw-bold" id="currentDate">-</h4>
+                        <p class="text-muted mb-0">Hoy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="col-12 mb-4">
+        <div class="card card-custom">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="searchInput" 
+                                   placeholder="Buscar por usuario o email...">
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <select class="form-select" id="sortSelect">
+                            <option value="name">Ordenar por Usuario</option>
+                            <option value="email">Ordenar por Email</option>
+                            <option value="date">Ordenar por Fecha</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                            <i class="fas fa-broom me-2"></i>
+                            Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de usuarios -->
+    <div class="col-12">
+        <div class="card card-custom">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Lista de Usuarios ({{ usuarios|length }})
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if usuarios %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="usersTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    ID
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-user me-1"></i>
+                                    Usuario
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    Email
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Fecha Registro
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-shield-alt me-1"></i>
+                                    Estado
+                                </th>
+                                <th scope="col" class="text-center">
+                                    <i class="fas fa-cogs me-1"></i>
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for usuario in usuarios %}
+                            <tr class="user-row" 
+                                data-username="{{ usuario[1]|lower }}" 
+                                data-email="{{ usuario[2]|lower }}"
+                                data-date="{{ usuario[3] }}">
+                                <td>
+                                    <span class="badge bg-secondary">#{{ usuario[0] }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary text-white me-2">
+                                            {{ usuario[1][0]|upper }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ usuario[1] }}</strong>
+                                            {% if usuario[1] == 'admin' %}
+                                            <span class="badge bg-warning ms-1">Admin</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <i class="fas fa-envelope text-muted me-1"></i>
+                                    {{ usuario[2] }}
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ usuario[3].strftime('%d/%m/%Y') if usuario[3] else 'N/A' }}
+                                        <br>
+                                        {{ usuario[3].strftime('%H:%M') if usuario[3] else '' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-circle me-1"></i>
+                                        Activo
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button"
+                                        class="btn btn-outline-info"
+                                        title="Ver detalles"
+                                        data-user-id="{{ usuario[0] }}"
+                                        data-username="{{ usuario[1] }}"
+                                        data-email="{{ usuario[2] }}"
+                                        data-date="{{ usuario[3].strftime('%Y-%m-%d %H:%M:%S') if usuario[3] else 'N/A' }}"
+                                        onclick="viewUserFromData(this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if usuario[1] != 'admin' %}
+                                <button type="button"
+                                        class="btn btn-outline-danger"
+                                        title="Eliminar usuario"
+                                        data-user-id="{{ usuario[0] }}"
+                                        data-username="{{ usuario[1] }}"
+                                        onclick="deleteUserFromData(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <script>
+                        // Función para ver usuario usando data attributes
+                        function viewUserFromData(button) {
+                            const userId = button.dataset.userId;
+                            const username = button.dataset.username;
+                            const email = button.dataset.email;
+                            const date = button.dataset.date;
+                            
+                            // Llama a tu función original
+                            viewUser(parseInt(userId), username, email, date);
+                        }
+
+                        // Función para eliminar usuario usando data attributes
+                        function deleteUserFromData(button) {
+                            const userId = button.dataset.userId;
+                            const username = button.dataset.username;
+                            
+                            // Llama a tu función original
+                            deleteUser(parseInt(userId), username);
+                        }
+
+                        // Si prefieres mantener las funciones originales sin cambios,
+                        // también puedes usar esta alternativa más directa:
+                        function viewUserFromDataDirect(button) {
+                            viewUser(
+                                parseInt(button.dataset.userId),
+                                button.dataset.username,
+                                button.dataset.email,
+                                button.dataset.date
+                            );
+                        }
+
+                        function deleteUserFromDataDirect(button) {
+                            deleteUser(
+                                parseInt(button.dataset.userId),
+                                button.dataset.username
+                            );
+                        }
+                        </script>
+                        
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users text-muted mb-3" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted">No hay usuarios registrados</h4>
+                    <p class="text-muted">Serás el primero en registrarte</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-custom">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Crear Primer Usuario
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación -->
+    <div class="col-12 mt-4">
+        <div class="text-center">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-custom me-2">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver al Dashboard
+            </a>
+            <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-custom">
+                <i class="fas fa-home me-2"></i>
+                Ir al Inicio
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de detalles del usuario -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="userModalLabel">
+                    <i class="fas fa-user-circle me-2"></i>
+                    Detalles del Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <div class="avatar-circle bg-primary text-white mx-auto mb-2" style="width: 60px; height: 60px; line-height: 60px; font-size: 24px;">
+                        <span id="modalUserInitial"></span>
+                    </div>
+                    <h4 id="modalUsername"></h4>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4"><strong>ID:</strong></div>
+                    <div class="col-sm-8"><span id="modalUserId"></span></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4"><strong>Email:</strong></div>
+                    <div class="col-sm-8"><span id="modalUserEmail"></span></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4"><strong>Registrado:</strong></div>
+                    <div class="col-sm-8"><span id="modalUserDate"></span></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4"><strong>Estado:</strong></div>
+                    <div class="col-sm-8">
+                        <span class="badge bg-success">
+                            <i class="fas fa-circle me-1"></i>Activo
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.table th {
+    border-top: none;
+}
+
+.user-row:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar fecha actual
+    const today = new Date();
+    document.getElementById('currentDate').textContent = today.toLocaleDateString('es-ES');
+
+    // Búsqueda en tiempo real
+    const searchInput = document.getElementById('searchInput');
+    const userRows = document.querySelectorAll('.user-row');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        userRows.forEach(row => {
+            const username = row.dataset.username;
+            const email = row.dataset.email;
+            
+            if (username.includes(searchTerm) || email.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        updateVisibleCount();
+    });
+
+    // Ordenamiento
+    const sortSelect = document.getElementById('sortSelect');
+    sortSelect.addEventListener('change', function() {
+        sortTable(this.value);
+    });
+
+    function updateVisibleCount() {
+        const visibleRows = document.querySelectorAll('.user-row[style=""], .user-row:not([style])');
+        const header = document.querySelector('.card-header h5');
+        header.innerHTML = `<i class="fas fa-list me-2"></i>Lista de Usuarios (${visibleRows.length})`;
+    }
+
+    function sortTable(criteria) {
+        const tbody = document.querySelector('#usersTable tbody');
+        const rows = Array.from(tbody.querySelectorAll('.user-row'));
+        
+        rows.sort((a, b) => {
+            let aValue, bValue;
+            
+            switch(criteria) {
+                case 'name':
+                    aValue = a.dataset.username;
+                    bValue = b.dataset.username;
+                    break;
+                case 'email':
+                    aValue = a.dataset.email;
+                    bValue = b.dataset.email;
+                    break;
+                case 'date':
+                    aValue = new Date(a.dataset.date);
+                    bValue = new Date(b.dataset.date);
+                    break;
+            }
+            
+            if (criteria === 'date') {
+                return bValue - aValue; // Más reciente primero
+            } else {
+                return aValue.localeCompare(bValue);
+            }
+        });
+        
+        rows.forEach(row => tbody.appendChild(row));
+    }
+});
+
+function viewUser(id, username, email, date) {
+    document.getElementById('modalUserId').textContent = '#' + id;
+    document.getElementById('modalUsername').textContent = username;
+    document.getElementById('modalUserEmail').textContent = email;
+    document.getElementById('modalUserDate').textContent = new Date(date).toLocaleString('es-ES');
+    document.getElementById('modalUserInitial').textContent = username.charAt(0).toUpperCase();
+    
+    const modal = new bootstrap.Modal(document.getElementById('userModal'));
+    modal.show();
+}
+
+function deleteUser(id, username) {
+    if (confirm(`¿Estás seguro de que quieres eliminar al usuario "${username}"?\n\nEsta acción no se puede deshacer.`)) {
+        // En una aplicación real, aquí harías una petición AJAX para eliminar el usuario
+        alert('Funcionalidad de eliminación no implementada en esta demo.\nEn una aplicación real, esto eliminaría al usuario de la base de datos.');
+    }
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sortSelect').value = 'name';
+    
+    const userRows = document.querySelectorAll('.user-row');
+    userRows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    sortTable('name');
+    updateVisibleCount();
+}
+</script>
+{% endblock %}
