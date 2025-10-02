@@ -1175,8 +1175,8 @@
 </body>
 </html>
     <style>
-        
-        border-radius{: 15px;
+
+        border-radius{
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             display: flex;
@@ -1473,7 +1473,7 @@
             .primary-activities {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .preview-support,
             .preview-primary {
                 grid-template-columns: repeat(2, 1fr);
@@ -1487,7 +1487,7 @@
             .preview-primary {
                 grid-template-columns: 1fr;
             }
-            
+
             .tips-content {
                 grid-template-columns: 1fr;
             }
