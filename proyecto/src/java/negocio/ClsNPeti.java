@@ -301,31 +301,36 @@ public class ClsNPeti {
      * @return porcentaje de completado (0-100)
      */
     public int obtenerProgreso(int grupoId) {
-        // Definir campos obligatorios por sección
-        String[] seccionesObligatorias = {
+        // Definir las 9 secciones principales del PETI (sin estrategias que aún no existe)
+        String[] seccionesPrincipales = {
             "empresa", "mision", "vision", "valores", "objetivos",
-            "analisis_interno", "analisis_externo", "estrategia",
-            "matriz_came", "resumen_ejecutivo"
+            "analisis_interno", "analisis_externo",
+            "cadena_valor", "bcg"
         };
         
-        int totalCampos = seccionesObligatorias.length;
-        int camposCompletos = 0;
+        int totalSecciones = seccionesPrincipales.length; // 9 secciones
+        int seccionesCompletadas = 0;
         
-        String sql = "SELECT COUNT(DISTINCT seccion) FROM peti_datos WHERE grupo_id = ? AND valor IS NOT NULL AND valor != ''";
+        // Contar cuántas de las 10 secciones principales tienen datos
+        String sql = "SELECT COUNT(DISTINCT seccion) FROM peti_datos WHERE grupo_id = ? AND seccion = ? AND valor IS NOT NULL AND valor != ''";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, grupoId);
-            
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                camposCompletos = rs.getInt(1);
+            for (String seccion : seccionesPrincipales) {
+                pstmt.setInt(1, grupoId);
+                pstmt.setString(2, seccion);
+                
+                ResultSet rs = pstmt.executeQuery();
+                
+                if (rs.next() && rs.getInt(1) > 0) {
+                    seccionesCompletadas++;
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error al calcular progreso: " + e.getMessage());
         }
         
-        return (int) ((double) camposCompletos / totalCampos * 100);
+        // Calcular porcentaje y asegurar que no exceda 100%
+        int progreso = (int) ((double) seccionesCompletadas / totalSecciones * 100);
+        return Math.min(progreso, 100); // Nunca mayor a 100%
     }
 }

@@ -20,74 +20,71 @@
     // Verificar modo colaborativo
     boolean modoColaborativo = grupoActual != null && grupoId != null;
     
-    // Variables para la cadena de valor
-    String logisticaInterna = "";
-    String operaciones = "";
-    String logisticaExterna = "";
-    String marketingVentas = "";
-    String serviciosPostventa = "";
-    String infraestructura = "";
-    String recursosHumanos = "";
-    String tecnologia = "";
-    String compras = "";
+    // Variables para los datos
+    String reflexion = "";
+    String fortaleza1 = "";
+    String fortaleza2 = "";
+    String debilidad1 = "";
+    String debilidad2 = "";
     String mensaje = "";
     String tipoMensaje = "";
     
+    // Array para almacenar las valoraciones de las 25 afirmaciones
+    String[] valoraciones = new String[25];
+    for (int i = 0; i < 25; i++) {
+        valoraciones[i] = "";
+    }
+    
     // Procesar guardado si viene del formulario
     if ("POST".equals(request.getMethod()) && modoColaborativo) {
-        String nuevaLogisticaInterna = request.getParameter("logistica_interna");
-        String nuevasOperaciones = request.getParameter("operaciones");
-        String nuevaLogisticaExterna = request.getParameter("logistica_externa");
-        String nuevoMarketing = request.getParameter("marketing");
-        String nuevosServicios = request.getParameter("servicios");
-        String nuevaInfraestructura = request.getParameter("infraestructura");
-        String nuevosRecursos = request.getParameter("recursos_humanos");
-        String nuevaTecnologia = request.getParameter("tecnologia");
-        String nuevasCompras = request.getParameter("compras");
-        
         ClsNPeti negocioPeti = new ClsNPeti();
         boolean exito = true;
         
         try {
-            if (nuevaLogisticaInterna != null && !nuevaLogisticaInterna.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "logistica_interna", nuevaLogisticaInterna.trim(), usuarioId);
+            // Guardar valoraciones de las afirmaciones
+            for (int i = 1; i <= 25; i++) {
+                String valoracion = request.getParameter("afirmacion_" + i);
+                if (valoracion != null && !valoracion.trim().isEmpty()) {
+                    ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "afirmacion_" + i, valoracion.trim(), usuarioId);
+                    exito = exito && negocioPeti.guardarDato(dato);
+                }
+            }
+            
+            // Guardar reflexión
+            String nuevaReflexion = request.getParameter("reflexion");
+            if (nuevaReflexion != null && !nuevaReflexion.trim().isEmpty()) {
+                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "reflexion", nuevaReflexion.trim(), usuarioId);
                 exito = exito && negocioPeti.guardarDato(dato);
             }
-            if (nuevasOperaciones != null && !nuevasOperaciones.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "operaciones", nuevasOperaciones.trim(), usuarioId);
+            
+            // Guardar fortalezas
+            String nuevaFortaleza1 = request.getParameter("fortaleza1");
+            if (nuevaFortaleza1 != null && !nuevaFortaleza1.trim().isEmpty()) {
+                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "fortaleza1", nuevaFortaleza1.trim(), usuarioId);
                 exito = exito && negocioPeti.guardarDato(dato);
             }
-            if (nuevaLogisticaExterna != null && !nuevaLogisticaExterna.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "logistica_externa", nuevaLogisticaExterna.trim(), usuarioId);
+            
+            String nuevaFortaleza2 = request.getParameter("fortaleza2");
+            if (nuevaFortaleza2 != null && !nuevaFortaleza2.trim().isEmpty()) {
+                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "fortaleza2", nuevaFortaleza2.trim(), usuarioId);
                 exito = exito && negocioPeti.guardarDato(dato);
             }
-            if (nuevoMarketing != null && !nuevoMarketing.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "marketing", nuevoMarketing.trim(), usuarioId);
+            
+            // Guardar debilidades
+            String nuevaDebilidad1 = request.getParameter("debilidad1");
+            if (nuevaDebilidad1 != null && !nuevaDebilidad1.trim().isEmpty()) {
+                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "debilidad1", nuevaDebilidad1.trim(), usuarioId);
                 exito = exito && negocioPeti.guardarDato(dato);
             }
-            if (nuevosServicios != null && !nuevosServicios.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "servicios", nuevosServicios.trim(), usuarioId);
-                exito = exito && negocioPeti.guardarDato(dato);
-            }
-            if (nuevaInfraestructura != null && !nuevaInfraestructura.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "infraestructura", nuevaInfraestructura.trim(), usuarioId);
-                exito = exito && negocioPeti.guardarDato(dato);
-            }
-            if (nuevosRecursos != null && !nuevosRecursos.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "recursos_humanos", nuevosRecursos.trim(), usuarioId);
-                exito = exito && negocioPeti.guardarDato(dato);
-            }
-            if (nuevaTecnologia != null && !nuevaTecnologia.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "tecnologia", nuevaTecnologia.trim(), usuarioId);
-                exito = exito && negocioPeti.guardarDato(dato);
-            }
-            if (nuevasCompras != null && !nuevasCompras.trim().isEmpty()) {
-                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "compras", nuevasCompras.trim(), usuarioId);
+            
+            String nuevaDebilidad2 = request.getParameter("debilidad2");
+            if (nuevaDebilidad2 != null && !nuevaDebilidad2.trim().isEmpty()) {
+                ClsEPeti dato = new ClsEPeti(grupoId, "cadena_valor", "debilidad2", nuevaDebilidad2.trim(), usuarioId);
                 exito = exito && negocioPeti.guardarDato(dato);
             }
             
             if (exito) {
-                mensaje = "Cadena de Valor guardada exitosamente";
+                mensaje = "Autodiagnóstico de Cadena de Valor guardado exitosamente";
                 tipoMensaje = "success";
             } else {
                 mensaje = "Error al guardar algunos datos";
@@ -105,17 +102,86 @@
             ClsNPeti negocioPeti = new ClsNPeti();
             Map<String, String> datosCadena = negocioPeti.obtenerDatosSeccion(grupoId, "cadena_valor");
             
-            logisticaInterna = datosCadena.getOrDefault("logistica_interna", "");
-            operaciones = datosCadena.getOrDefault("operaciones", "");
-            logisticaExterna = datosCadena.getOrDefault("logistica_externa", "");
-            marketingVentas = datosCadena.getOrDefault("marketing", "");
-            serviciosPostventa = datosCadena.getOrDefault("servicios", "");
-            infraestructura = datosCadena.getOrDefault("infraestructura", "");
-            recursosHumanos = datosCadena.getOrDefault("recursos_humanos", "");
-            tecnologia = datosCadena.getOrDefault("tecnologia", "");
-            compras = datosCadena.getOrDefault("compras", "");
+            // Cargar valoraciones
+            for (int i = 1; i <= 25; i++) {
+                valoraciones[i-1] = datosCadena.getOrDefault("afirmacion_" + i, "");
+            }
+            
+            reflexion = datosCadena.getOrDefault("reflexion", "");
+            fortaleza1 = datosCadena.getOrDefault("fortaleza1", "");
+            fortaleza2 = datosCadena.getOrDefault("fortaleza2", "");
+            debilidad1 = datosCadena.getOrDefault("debilidad1", "");
+            debilidad2 = datosCadena.getOrDefault("debilidad2", "");
         } catch (Exception e) {
-            //System.err.println("Error al cargar datos: " + e.getMessage());
+            // Error al cargar datos
+        }
+    }
+    
+    // Generar iniciales del usuario
+    String userInitials = "U";
+    if (usuario != null && usuario.length() > 0) {
+        userInitials = usuario.substring(0, 1).toUpperCase();
+        if (usuario.contains(" ") && usuario.length() > usuario.indexOf(" ") + 1) {
+            userInitials += usuario.substring(usuario.indexOf(" ") + 1, usuario.indexOf(" ") + 2).toUpperCase();
+        }
+    }
+    
+    // Obtener información del usuario para mostrar en el dashboard
+    String userEmail = (String) session.getAttribute("email");
+    if (userEmail == null) {
+        userEmail = "usuario@ejemplo.com";
+    }
+    
+    // Definir las afirmaciones
+    String[] afirmaciones = {
+        "La empresa tiene una política sistematizada de cero defectos en la producción de productos/servicios.",
+        "La empresa emplea los medios productivos tecnológicamente más avanzados de su sector.",
+        "La empresa dispone de un sistema de información y control de gestión eficiente y eficaz.",
+        "Los medios técnicos y tecnológicos de la empresa están preparados para competir en un futuro a corto, medio y largo plazo.",
+        "La empresa es un referente en su sector en I+D+i.",
+        "La excelencia de los procedimientos de la empresa (en ISO, etc.) son una principal fuente de ventaja competitiva.",
+        "La empresa dispone de página web, y esta se emplea no sólo como escaparate virtual de productos/servicios, sino también para establecer relaciones con clientes y proveedores.",
+        "Los productos/servicios que desarrolla nuestra empresa llevan incorporada una tecnología difícil de imitar.",
+        "La empresa es referente en su sector en la optimización, en términos de coste, de su cadena de producción, siendo esta una de sus principales ventajas competitivas.",
+        "La informatización de la empresa es una fuente de ventaja competitiva clara respecto a sus competidores.",
+        "Los canales de distribución de la empresa son una importante fuente de ventajas competitivas.",
+        "Los productos/servicios de la empresa son altamente, y diferenciadamente, valorados por el cliente respecto a nuestros competidores.",
+        "La empresa dispone y ejecuta un sistemático plan de marketing y ventas.",
+        "La empresa tiene optimizada su gestión financiera.",
+        "La empresa busca continuamente el mejorar la relación con sus clientes cortando los plazos de ejecución, personalizando la oferta o mejorando las condiciones de entrega. Pero siempre partiendo de un plan previo.",
+        "La empresa es referente en su sector en el lanzamiento de innovadores productos y servicio de éxito demostrado en el mercado.",
+        "Los Recursos Humanos son especialmente responsables del éxito de la empresa, considerándolos incluso como el principal activo estratégico.",
+        "Se tiene una plantilla altamente motivada, que conoce con claridad las metas, objetivos y estrategias de la organización.",
+        "La empresa siempre trabaja conforme a una estrategia y objetivos claros.",
+        "La gestión del circulante está optimizada.",
+        "Se tiene definido claramente el posicionamiento estratégico de todos los productos de la empresa.",
+        "Se dispone de una política de marca basada en la reputación que la empresa genera, en la gestión de relación con el cliente y en el posicionamiento estratégico previamente definido.",
+        "La cartera de clientes de nuestra empresa está altamente fidelizada, ya que tenemos como principal propósito el deleitarlos día a día.",
+        "Nuestra política y equipo de ventas y marketing es una importante ventaja competitiva de nuestra empresa respecto al sector.",
+        "El servicio al cliente que prestamos es uno de nuestras principales ventajas competitivas respecto a nuestros competidores."
+    };
+    
+    // Calcular el potencial de mejora
+    int totalPuntos = 0;
+    int respuestasCompletas = 0;
+    double porcentajeMejora = 0.0;
+    
+    if (modoColaborativo) {
+        for (int i = 0; i < 25; i++) {
+            if (!valoraciones[i].isEmpty()) {
+                try {
+                    totalPuntos += Integer.parseInt(valoraciones[i]);
+                    respuestasCompletas++;
+                } catch (NumberFormatException e) {
+                    // Ignorar valores no numéricos
+                }
+            }
+        }
+        
+        if (respuestasCompletas > 0) {
+            // Calcular porcentaje: (puntos obtenidos / puntos máximos posibles) * 100
+            int puntosMaximos = respuestasCompletas * 4; // 4 es la puntuación máxima por pregunta
+            porcentajeMejora = ((double) totalPuntos / puntosMaximos) * 100;
         }
     }
 %>
@@ -125,1751 +191,768 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadena de Valor - PETI Colaborativo</title>
+    <title>Autodiagnóstico Cadena de Valor - PETI Colaborativo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2d3748;
+            --accent-color: #3182ce;
+            --success-color: #38a169;
+            --warning-color: #d69e2e;
+            --danger-color: #e53e3e;
+            --light-bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
+            background: var(--light-bg);
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+
+        .dashboard-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .dashboard-sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--primary-color);
+            color: white;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .company-logo i {
+            font-size: 28px;
+            margin-right: 12px;
+            color: var(--accent-color);
+        }
+
+        .company-logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .user-info p {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .dashboard-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
             overflow-x: hidden;
-            animation: backgroundShift 20s ease-in-out infinite;
         }
 
-        @keyframes backgroundShift {
-            0%, 100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-            25% { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
-            50% { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #667eea 100%); }
-            75% { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 50%, #667eea 100%); }
+        .nav-section {
+            margin-bottom: 24px;
         }
 
-        body::before {
+        .nav-section-title {
+            padding: 0 20px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .dashboard-nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .dashboard-nav li {
+            margin-bottom: 2px;
+        }
+
+        .dashboard-nav a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .dashboard-nav a i {
+            margin-right: 12px;
+            width: 18px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .dashboard-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .dashboard-nav li.active a {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .dashboard-nav li.active a::before {
             content: '';
-            position: fixed;
-            top: 0;
+            position: absolute;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            z-index: -1;
-            animation: gridFloat 15s ease-in-out infinite;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: white;
         }
 
-        @keyframes gridFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(1deg); }
+        .dashboard-content {
+            flex: 1;
+            background: var(--light-bg);
+            overflow-y: auto;
+            height: 100vh;
         }
 
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+        .dashboard-header {
+            background: var(--card-bg);
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-            animation: headerGlow 3s ease-in-out infinite alternate;
+            box-shadow: var(--shadow-sm);
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, rgba(22, 160, 133, 0.1), rgba(39, 174, 96, 0.1), rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.1), rgba(22, 160, 133, 0.1));
-            animation: rotate 20s linear infinite;
-            z-index: -1;
+        .dashboard-header h1 {
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.025em;
         }
 
-        @keyframes headerGlow {
-            0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); }
-            100% { box-shadow: 0 25px 50px rgba(22, 160, 133, 0.2); }
-        }
-
-        @keyframes rotate {
-            100% { transform: rotate(360deg); }
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 32px;
+        .header-actions {
             display: flex;
             align-items: center;
-            gap: 20px;
-            font-weight: 800;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            gap: 16px;
         }
 
-        .chain-logo {
-            background: linear-gradient(135deg, #16a085 0%, #27ae60 100%);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 16px;
-            font-weight: bold;
-            font-size: 20px;
-            box-shadow: 0 8px 25px rgba(22, 160, 133, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .chain-logo::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: logoShine 3s ease-in-out infinite;
-        }
-
-        @keyframes logoShine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-        }
-
-        .grupo-info {
-            font-size: 16px;
-            color: #7f8c8d;
-            font-weight: 500;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.9);
-            color: #2c3e50;
-            border: 1px solid rgba(52, 152, 219, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: translateY(-1px);
-        }
-
-        .progress-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .progress-title {
-            font-size: 18px;
-            color: #2c3e50;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .progress-stats {
-            display: flex;
-            gap: 20px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .progress-bar-container {
-            background: rgba(0, 0, 0, 0.1);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #16a085 0%, #27ae60 100%);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            position: relative;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .cadena-valor-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .actividades-apoyo {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .actividades-primarias {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .actividad-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-            animation: cardFloat 6s ease-in-out infinite;
-        }
-
-        @keyframes cardFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-        }
-
-        .actividad-card:hover {
-            transform: translateY(-12px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-
-        .actividad-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #16a085 0%, #27ae60 100%);
-            animation: gradientShift 4s ease-in-out infinite;
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background: linear-gradient(90deg, #16a085 0%, #27ae60 100%); }
-            50% { background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%); }
-        }
-
-        .actividad-apoyo .actividad-card::before {
-            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
-            animation: gradientShiftRed 4s ease-in-out infinite;
-        }
-
-        @keyframes gradientShiftRed {
-            0%, 100% { background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%); }
-            50% { background: linear-gradient(90deg, #c0392b 0%, #e67e22 100%); }
-        }
-
-        .actividad-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: cardRotate 8s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes cardRotate {
-            100% { transform: rotate(360deg); }
-        }
-
-        .actividad-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .actividad-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            color: white;
-            background: linear-gradient(135deg, #16a085 0%, #27ae60 100%);
-            box-shadow: 0 8px 25px rgba(22, 160, 133, 0.4);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .actividad-icon::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: iconShine 2s ease-in-out infinite;
-        }
-
-        @keyframes iconShine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-        }
-
-        .actividad-card:hover .actividad-icon {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 12px 30px rgba(22, 160, 133, 0.5);
-        }
-
-        .actividad-apoyo .actividad-icon {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
-        }
-
-        .actividad-apoyo .actividad-card:hover .actividad-icon {
-            box-shadow: 0 12px 30px rgba(231, 76, 60, 0.5);
-        }
-
-        .actividad-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2c3e50;
-            flex: 1;
-        }
-
-        .char-counter {
-            font-size: 12px;
-            color: #95a5a6;
-            background: rgba(149, 165, 166, 0.1);
-            padding: 4px 8px;
+            padding: 6px 12px;
+            background: rgba(49, 130, 206, 0.1);
+            color: var(--accent-color);
             border-radius: 6px;
-        }
-
-        .input-group {
-            position: relative;
-        }
-
-        .form-textarea {
-            width: 100%;
-            min-height: 140px;
-            padding: 20px;
-            border: 3px solid rgba(52, 152, 219, 0.2);
-            border-radius: 15px;
-            font-size: 15px;
-            font-family: inherit;
-            resize: vertical;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            line-height: 1.6;
-            color: #2c3e50;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15), 0 8px 25px rgba(52, 152, 219, 0.1);
-            background: rgba(255, 255, 255, 1);
-            transform: translateY(-2px);
-        }
-
-        .form-textarea::placeholder {
-            color: #bdc3c7;
-            font-style: italic;
-        }
-
-        .form-textarea:hover {
-            border-color: rgba(52, 152, 219, 0.4);
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);
-        }
-
-        .section-divider {
-            text-align: center;
-            margin: 40px 0;
-            position: relative;
-        }
-
-        .section-divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.3), rgba(155, 89, 182, 0.3), rgba(52, 152, 219, 0.3), transparent);
-            animation: lineGlow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes lineGlow {
-            0% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-
-        .section-label {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 16px 32px;
-            border-radius: 30px;
-            font-weight: 700;
-            color: #2c3e50;
-            border: 3px solid rgba(52, 152, 219, 0.2);
-            display: inline-block;
-            position: relative;
-            z-index: 1;
-            font-size: 18px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .section-label:hover {
-            transform: scale(1.05);
-            border-color: rgba(52, 152, 219, 0.4);
-            box-shadow: 0 12px 30px rgba(52, 152, 219, 0.2);
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn-save {
-            background: linear-gradient(135deg, #27ae60 0%, #16a085 100%);
-            color: white;
-            padding: 18px 40px;
-            border: none;
-            border-radius: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 18px;
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-save::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn-save:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(39, 174, 96, 0.5);
-        }
-
-        .btn-save:hover::before {
-            left: 100%;
-        }
-
-        .btn-save:active {
-            transform: translateY(-1px) scale(1.02);
-        }
-
-        .mensaje {
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            font-size: 13px;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(20px);
         }
 
-        .mensaje.success {
-            background: rgba(39, 174, 96, 0.9);
-            color: white;
-            border: 1px solid rgba(39, 174, 96, 0.3);
+        .status-badge i {
+            margin-right: 6px;
         }
 
-        .mensaje.error {
-            background: rgba(231, 76, 60, 0.9);
-            color: white;
-            border: 1px solid rgba(231, 76, 60, 0.3);
+        .admin-badge {
+            background: rgba(214, 158, 46, 0.1);
+            color: var(--warning-color);
+            margin-left: 8px;
         }
 
-        .modo-info {
-            background: rgba(52, 152, 219, 0.1);
-            border: 1px solid rgba(52, 152, 219, 0.2);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .colaboradores-online {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .colaborador-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .actividades-apoyo,
-            .actividades-primarias {
-                grid-template-columns: 1fr;
-            }
-            
-            .nav-buttons {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .progress-stats {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
-
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        .auto-save-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(39, 174, 96, 0.9);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1000;
-        }
-
-        .auto-save-indicator.show {
-            opacity: 1;
-        }
-    </style>
-</head>
-<body>
-    <div class="auto-save-indicator" id="autoSaveIndicator">
-        <i class="fas fa-check"></i> Guardado automáticamente
-    </div>
-
-    <div class="container">
-        <div class="header">
-            <h1>
-                <div class="chain-logo">CV</div>
-                Cadena de Valor
-            </h1>
-            <% if (modoColaborativo) { %>
-                <div class="grupo-info">
-                    <div><strong>Grupo:</strong> <%= grupoActual %></div>
-                    <div><strong>Usuario:</strong> <%= usuario %> (<%= rolUsuario %>)</div>
-                </div>
-            <% } %>
-            <div class="nav-buttons">
-                <a href="dashboard.jsp" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Dashboard
-                </a>
-                <a href="../menuprincipal.jsp" class="btn btn-primary">
-                    <i class="fas fa-home"></i> Menú Principal
-                </a>
-            </div>
-        </div>
-
-        <% if (!mensaje.isEmpty()) { %>
-            <div class="mensaje <%= tipoMensaje %>">
-                <% if ("success".equals(tipoMensaje)) { %>
-                    <i class="fas fa-check-circle"></i>
-                <% } else { %>
-                    <i class="fas fa-exclamation-triangle"></i>
-                <% } %>
-                <%= mensaje %>
-            </div>
-        <% } %>
-
-        <% if (modoColaborativo) { %>
-            <div class="progress-section">
-                <div class="progress-header">
-                    <h3 class="progress-title">
-                        <i class="fas fa-chart-line"></i>
-                        Progreso de Análisis
-                    </h3>
-                    <div class="progress-stats">
-                        <div class="stat-item">
-                            <i class="fas fa-users"></i>
-                            <span id="colaboradoresCount">1 colaborador</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-clock"></i>
-                            <span id="lastUpdate">Actualizado ahora</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-percentage"></i>
-                            <span id="completionPercent">0% completado</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="overallProgress" style="width: 0%"></div>
-                </div>
-            </div>
-        <% } else { %>
-            <div class="modo-info">
-                <i class="fas fa-info-circle"></i>
-                <strong>Modo Individual:</strong> Únete a un grupo para colaborar en tiempo real con otros usuarios.
-            </div>
-        <% } %>
-
-        <form method="post" id="cadenaForm">
-            <div class="cadena-valor-container">
-                <div class="section-divider">
-                    <div class="section-label">
-                        <i class="fas fa-cogs"></i>
-                        Actividades de Apoyo
-                    </div>
-                </div>
-                
-                <div class="actividades-apoyo">
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <h3 class="actividad-title">Infraestructura</h3>
-                            <span class="char-counter" id="infraestructura-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="infraestructura" 
-                                class="form-textarea" 
-                                placeholder="Describe la infraestructura organizacional, sistemas de planificación, finanzas, contabilidad, aspectos legales, gestión de calidad..."
-                                maxlength="500"
-                                data-counter="infraestructura-counter"><%= infraestructura %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <h3 class="actividad-title">Recursos Humanos</h3>
-                            <span class="char-counter" id="recursos-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="recursos_humanos" 
-                                class="form-textarea" 
-                                placeholder="Describe las actividades de gestión de recursos humanos: reclutamiento, capacitación, desarrollo, compensación..."
-                                maxlength="500"
-                                data-counter="recursos-counter"><%= recursosHumanos %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-microchip"></i>
-                            </div>
-                            <h3 class="actividad-title">Tecnología</h3>
-                            <span class="char-counter" id="tecnologia-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="tecnologia" 
-                                class="form-textarea" 
-                                placeholder="Describe el desarrollo tecnológico, investigación y desarrollo, automatización, sistemas de información..."
-                                maxlength="500"
-                                data-counter="tecnologia-counter"><%= tecnologia %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <h3 class="actividad-title">Compras</h3>
-                            <span class="char-counter" id="compras-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="compras" 
-                                class="form-textarea" 
-                                placeholder="Describe las actividades de adquisición de materias primas, suministros, servicios, equipos, edificios..."
-                                maxlength="500"
-                                data-counter="compras-counter"><%= compras %></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section-divider">
-                    <div class="section-label">
-                        <i class="fas fa-arrow-right"></i>
-                        Actividades Primarias
-                    </div>
-                </div>
-
-                <div class="actividades-primarias">
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-truck-loading"></i>
-                            </div>
-                            <h3 class="actividad-title">Logística Interna</h3>
-                            <span class="char-counter" id="logistica-interna-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="logistica_interna" 
-                                class="form-textarea" 
-                                placeholder="Describe las actividades de recepción, almacenamiento, control de inventarios, programación de vehículos, devoluciones..."
-                                maxlength="500"
-                                data-counter="logistica-interna-counter"><%= logisticaInterna %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <h3 class="actividad-title">Operaciones</h3>
-                            <span class="char-counter" id="operaciones-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="operaciones" 
-                                class="form-textarea" 
-                                placeholder="Describe las actividades de transformación de insumos en productos finales: maquinado, empaque, ensamble, mantenimiento de equipos, pruebas..."
-                                maxlength="500"
-                                data-counter="operaciones-counter"><%= operaciones %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-shipping-fast"></i>
-                            </div>
-                            <h3 class="actividad-title">Logística Externa</h3>
-                            <span class="char-counter" id="logistica-externa-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="logistica_externa" 
-                                class="form-textarea" 
-                                placeholder="Describe las actividades de recopilación, almacenamiento y distribución física del producto a los compradores..."
-                                maxlength="500"
-                                data-counter="logistica-externa-counter"><%= logisticaExterna %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-bullhorn"></i>
-                            </div>
-                            <h3 class="actividad-title">Marketing y Ventas</h3>
-                            <span class="char-counter" id="marketing-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="marketing" 
-                                class="form-textarea" 
-                                placeholder="Describe las actividades para proporcionar medios por los cuales los compradores pueden comprar el producto: publicidad, promoción, fuerza de ventas, cotizaciones, selección de canales..."
-                                maxlength="500"
-                                data-counter="marketing-counter"><%= marketingVentas %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actividad-card">
-                        <div class="actividad-header">
-                            <div class="actividad-icon">
-                                <i class="fas fa-headset"></i>
-                            </div>
-                            <h3 class="actividad-title">Servicios Post-venta</h3>
-                            <span class="char-counter" id="servicios-counter">0/500</span>
-                        </div>
-                        <div class="input-group">
-                            <textarea 
-                                name="servicios" 
-                                class="form-textarea" 
-                                placeholder="Describe las actividades para mantener o realzar el valor del producto: instalación, reparación, capacitación, repuestos, ajustes..."
-                                maxlength="500"
-                                data-counter="servicios-counter"><%= serviciosPostventa %></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <% if (modoColaborativo) { %>
-                <div class="action-buttons">
-                    <button type="submit" class="btn-save">
-                        <i class="fas fa-save"></i>
-                        Guardar Cadena de Valor
-                    </button>
-                </div>
-            <% } %>
-        </form>
-    </div>
-
-    <script>
-        // Actualizar contadores de caracteres
-        function updateCharCounter(textarea, counterId) {
-            const counter = document.getElementById(counterId);
-            const currentLength = textarea.value.length;
-            const maxLength = parseInt(textarea.getAttribute('maxlength'));
-            counter.textContent = `${currentLength}/${maxLength}`;
-            
-            if (currentLength > maxLength * 0.9) {
-                counter.style.color = '#e74c3c';
-            } else if (currentLength > maxLength * 0.7) {
-                counter.style.color = '#f39c12';
-            } else {
-                counter.style.color = '#95a5a6';
-            }
-        }
-
-        // Inicializar contadores y eventos
-        document.addEventListener('DOMContentLoaded', function() {
-            const textareas = document.querySelectorAll('.form-textarea');
-            
-            textareas.forEach(textarea => {
-                const counterId = textarea.getAttribute('data-counter');
-                if (counterId) {
-                    updateCharCounter(textarea, counterId);
-                    
-                    textarea.addEventListener('input', function() {
-                        updateCharCounter(this, counterId);
-                        updateProgress();
-                        <% if (modoColaborativo) { %>
-                            scheduleAutoSave();
-                        <% } %>
-                    });
-                }
-            });
-
-            updateProgress();
-        });
-
-        // Calcular progreso
-        function updateProgress() {
-            const textareas = document.querySelectorAll('.form-textarea');
-            let totalFields = textareas.length;
-            let completedFields = 0;
-            let totalChars = 0;
-
-            textareas.forEach(textarea => {
-                const value = textarea.value.trim();
-                if (value.length > 0) {
-                    completedFields++;
-                }
-                totalChars += value.length;
-            });
-
-            const percentage = Math.round((completedFields / totalFields) * 100);
-            
-            const progressBar = document.getElementById('overallProgress');
-            const percentageSpan = document.getElementById('completionPercent');
-            
-            if (progressBar) {
-                progressBar.style.width = percentage + '%';
-            }
-            
-            if (percentageSpan) {
-                percentageSpan.textContent = `${percentage}% completado`;
-            }
-
-            return {
-                percentage: percentage,
-                completedFields: completedFields,
-                totalFields: totalFields,
-                totalChars: totalChars
-            };
-        }
-
-        <% if (modoColaborativo) { %>
-        // Auto-guardado
-        let autoSaveTimeout;
-        let lastSavedContent = '';
-
-        function scheduleAutoSave() {
-            clearTimeout(autoSaveTimeout);
-            autoSaveTimeout = setTimeout(autoSave, 3000); // 3 segundos después de la última modificación
-        }
-
-        function autoSave() {
-            const form = document.getElementById('cadenaForm');
-            const formData = new FormData(form);
-            const currentContent = JSON.stringify(Object.fromEntries(formData));
-            
-            if (currentContent !== lastSavedContent) {
-                // Simular guardado automático (aquí podrías hacer una petición AJAX)
-                showAutoSaveIndicator();
-                lastSavedContent = currentContent;
-                updateLastUpdateTime();
-            }
-        }
-
-        function showAutoSaveIndicator() {
-            const indicator = document.getElementById('autoSaveIndicator');
-            indicator.classList.add('show');
-            setTimeout(() => {
-                indicator.classList.remove('show');
-            }, 2000);
-        }
-
-        function updateLastUpdateTime() {
-            const lastUpdateSpan = document.getElementById('lastUpdate');
-            if (lastUpdateSpan) {
-                lastUpdateSpan.textContent = 'Actualizado ahora';
-            }
-        }
-
-        // Simular colaboradores online (esto se conectaría con el sistema real)
-        function updateCollaborators() {
-            // Esta función se conectaría con el sistema de colaboración real
-            const collaboratorsSpan = document.getElementById('colaboradoresCount');
-            if (collaboratorsSpan) {
-                collaboratorsSpan.textContent = '1 colaborador';
-            }
-        }
-
-        // Actualizar cada minuto
-        setInterval(updateCollaborators, 60000);
-        <% } %>
-
-        // Prevenir pérdida de datos
-        window.addEventListener('beforeunload', function(e) {
-            const textareas = document.querySelectorAll('.form-textarea');
-            let hasUnsavedContent = false;
-            
-            textareas.forEach(textarea => {
-                if (textarea.value.trim().length > 0) {
-                    hasUnsavedContent = true;
-                }
-            });
-            
-            if (hasUnsavedContent) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
-
-        // Manejar envío del formulario
-        document.getElementById('cadenaForm').addEventListener('submit', function(e) {
-            const button = this.querySelector('.btn-save');
-            if (button) {
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-                button.disabled = true;
-            }
-        });
-    </script>
-</body>
-</html>
-    <style>
-
-        border-radius{
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        .dashboard-main {
+            padding: 32px;
         }
 
         .alert {
-            padding: 15px;
+            padding: 15px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .alert-success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: rgba(56, 161, 105, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(56, 161, 105, 0.2);
         }
 
         .alert-error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background: rgba(229, 62, 62, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(229, 62, 62, 0.2);
         }
 
-        .value-chain-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 30px;
+        .dashboard-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            overflow: hidden;
         }
 
-        .support-activities {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(26, 54, 93, 0.02);
         }
 
-        .primary-activities {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 15px;
+        .section-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
         }
 
-        .activity-card {
-            background: white;
+        .section-content {
+            padding: 24px;
+        }
+
+        .instructions {
+            background: rgba(49, 130, 206, 0.05);
+            border: 1px solid rgba(49, 130, 206, 0.1);
             border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-top: 4px solid;
-            transition: all 0.3s ease;
-            position: relative;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        .activity-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        .diagnostic-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+            font-size: 13px;
         }
 
-        .activity-card h3 {
-            margin-bottom: 15px;
-            font-size: 16px;
+        .diagnostic-table th {
+            background: #4a90a4;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #357a8b;
+        }
+
+        .diagnostic-table th:first-child {
+            text-align: left;
+            width: 50%;
+        }
+
+        .diagnostic-table td {
+            padding: 10px 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .diagnostic-table td:first-child {
+            text-align: left;
+            background: #f8f9fa;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .diagnostic-table tr:nth-child(even) td:first-child {
+            background: #e9ecef;
+        }
+
+        .diagnostic-table input[type="radio"] {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .reflection-section {
+            margin: 32px 0;
+        }
+
+        .reflection-box {
+            background: #f8f9fa;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .reflection-text {
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .reflection-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .reflection-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .strengths-weaknesses {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .sw-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .sw-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            text-align: center;
+            color: white;
+        }
+
+        .strengths .sw-header {
+            background: #d4a574;
+        }
+
+        .weaknesses .sw-header {
+            background: #a8c4a2;
+        }
+
+        .sw-content {
+            padding: 16px;
+        }
+
+        .sw-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            text-align: center;
-            justify-content: center;
+            margin-bottom: 12px;
         }
 
-        .activity-subtitle {
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-            margin-bottom: 15px;
-            font-style: italic;
-        }
-
-        /* Actividades de Soporte */
-        .infraestructura-card {
-            border-top-color: #9c27b0;
-            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-        }
-
-        .recursos-card {
-            border-top-color: #ff5722;
-            background: linear-gradient(135deg, #fff3e0 0%, #ffccbc 100%);
-        }
-
-        .tecnologia-card {
-            border-top-color: #2196f3;
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-        }
-
-        .compras-card {
-            border-top-color: #ff9800;
-            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-        }
-
-        /* Actividades Primarias */
-        .logistica-interna-card {
-            border-top-color: #4caf50;
-            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-        }
-
-        .operaciones-card {
-            border-top-color: #f44336;
-            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-        }
-
-        .logistica-externa-card {
-            border-top-color: #607d8b;
-            background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
-        }
-
-        .marketing-card {
-            border-top-color: #e91e63;
-            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
-        }
-
-        .servicios-card {
-            border-top-color: #00bcd4;
-            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
-        }
-
-        .section-title {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
+        .sw-label {
             font-weight: 600;
-            font-size: 18px;
+            margin-right: 8px;
+            min-width: 30px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        .sw-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 6px;
-            font-size: 13px;
-            min-height: 120px;
-            resize: vertical;
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        .form-group textarea:focus {
+        .sw-input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
-        }
-
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.1);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--accent-color);
             color: white;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .tips-box {
-            background: #e8f5e8;
-            border: 1px solid #4caf50;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .tips-box h4 {
-            color: #2e7d32;
-            margin-bottom: 15px;
-            display: flex;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 18px;
+            gap: 8px;
         }
 
-        .tips-content {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-top: 15px;
+        .btn-primary:hover {
+            background: #2c5282;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
 
-        .tip-section {
-            background: rgba(255, 255, 255, 0.7);
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 3px solid #4caf50;
-        }
-
-        .tip-section h5 {
-            color: #2e7d32;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .tip-section ul {
-            color: #2e7d32;
-            margin-left: 15px;
-            font-size: 13px;
-        }
-
-        .tip-section li {
-            margin-bottom: 5px;
-        }
-
-        .preview-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .preview-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .preview-chain {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .preview-row {
-            display: grid;
-            gap: 10px;
-        }
-
-        .preview-support {
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        .preview-primary {
-            grid-template-columns: repeat(5, 1fr);
-        }
-
-        .preview-item {
-            background: white;
-            padding: 12px;
-            border-radius: 6px;
-            border-top: 3px solid;
-            font-size: 13px;
-        }
-
-        .activity-examples {
-            font-size: 11px;
-            color: #666;
-            margin-top: 8px;
-            padding: 6px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 4px;
-            font-style: italic;
-        }
-
-        @media (max-width: 1024px) {
-            .support-activities,
-            .primary-activities {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .preview-support,
-            .preview-primary {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .save-button-container {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
         }
 
         @media (max-width: 768px) {
-            .support-activities,
-            .primary-activities,
-            .preview-support,
-            .preview-primary {
+            .dashboard-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .dashboard-sidebar {
+                width: 100%;
+                order: 2;
+            }
+            
+            .dashboard-content {
+                order: 1;
+                height: auto;
+            }
+            
+            .dashboard-main {
+                padding: 20px;
+            }
+            
+            .strengths-weaknesses {
                 grid-template-columns: 1fr;
             }
-
-            .tips-content {
-                grid-template-columns: 1fr;
+            
+            .diagnostic-table {
+                font-size: 12px;
+            }
+            
+            .diagnostic-table th,
+            .diagnostic-table td {
+                padding: 8px 4px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1>
-                    <i class="fas fa-link"></i> Cadena de Valor de Porter
-                    <small style="font-size: 14px; color: #666;">- Grupo: <%= grupoActual %> 
-                    <% if ("admin".equals(rolUsuario)) { %>
-                        <span style="color: #ffc107;">👑</span>
-                    <% } %>
-                    </small>
-                </h1>
+    <div class="dashboard-container">
+        <div class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <div class="company-logo">
+                    <i class="fas fa-link"></i>
+                    <h2>PETI System</h2>
+                </div>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <span><%= userInitials %></span>
+                    </div>
+                    <div class="user-info">
+                        <h3><%= usuario %></h3>
+                        <p><%= userEmail %></p>
+                    </div>
+                </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <a href="dashboard.jsp" class="btn" style="background: #6c757d; color: white;">
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
-                <a href="../menuprincipal.jsp" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i> Menú Principal
-                </a>
-            </div>
+            <nav class="dashboard-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <ul>
+                        <li><a href="dashboard.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Planificación Estratégica</div>
+                    <ul>
+                        <li><a href="empresa_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-building"></i> Información Empresarial</a></li>
+                        <li><a href="mision_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-bullseye"></i> Misión Corporativa</a></li>
+                        <li><a href="vision_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-eye"></i> Visión Estratégica</a></li>
+                        <li><a href="valores_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-heart"></i> Valores Organizacionales</a></li>
+                        <li><a href="objetivos_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-target"></i> Objetivos Estratégicos</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Análisis Estratégico</div>
+                    <ul>
+                        <li><a href="analisis_externo_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-search"></i> Análisis del Entorno</a></li>
+                        <li><a href="analisis_interno_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-chart-bar"></i> Análisis Organizacional</a></li>
+                    
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Herramientas de Gestión</div>
+                    <ul>
+                        
+                        <li class="active"><a href="cadena_valor_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-link"></i> Cadena de Valor</a></li>
+                        
+                        <li><a href="matriz_participacion_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-users"></i> Matriz de Participación</a></li>
+                         <li><a href="autodiagnostico_BCG.jsp"><i class="fas fa-users"></i> autodiagnostico_BCG</a></li>
+                        <li><a href="resumen-ejecutivo-colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-file-alt"></i> Resumen Ejecutivo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <ul>
+                        <li><a href="historial_cambios.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-history"></i> Historial de Cambios</a></li>
+                        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+            </nav>
         </div>
 
-        <div class="content">
-            <% if (!mensaje.isEmpty()) { %>
-                <div class="alert alert-<%= tipoMensaje %>">
-                    <i class="fas fa-<%= "success".equals(tipoMensaje) ? "check-circle" : "exclamation-triangle" %>"></i>
-                    <%= mensaje %>
+        <div class="dashboard-content">
+            <header class="dashboard-header">
+                <h1>
+                    <i class="fas fa-link"></i> Autodiagnóstico Cadena de Valor
+                    <% if (modoColaborativo) { %>
+                        - <%= grupoActual %>
+                    <% } else { %>
+                        - Modo Individual
+                    <% } %>
+                </h1>
+                <div class="header-actions">
+                    <% if (modoColaborativo) { %>
+                        <div class="status-badge">
+                            <i class="fas fa-users"></i> Modo Colaborativo
+                        </div>
+                        <% if ("admin".equals(rolUsuario)) { %>
+                            <div class="status-badge admin-badge">
+                                <i class="fas fa-crown"></i> Administrador
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="status-badge">
+                            <i class="fas fa-user"></i> Modo Individual
+                        </div>
+                    <% } %>
                 </div>
-            <% } %>
+            </header>
 
-            <% if (!modoColaborativo) { %>
-                <div class="alert" style="background: #fff3cd; border: 1px solid #ffeaa7; color: #856404;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Error:</strong> Debes estar en un grupo para acceder a esta página.
-                    <a href="../menuprincipal.jsp" style="color: #856404; text-decoration: underline;">Ir al menú principal</a>
-                </div>
-            <% } else { %>
+            <div class="dashboard-main">
+                <% if (!mensaje.isEmpty()) { %>
+                    <div class="alert alert-<%= tipoMensaje %>">
+                        <i class="fas fa-<%= tipoMensaje.equals("success") ? "check-circle" : "exclamation-triangle" %>"></i>
+                        <%= mensaje %>
+                    </div>
+                <% } %>
 
-            <div class="tips-box">
-                <h4><i class="fas fa-lightbulb"></i> ¿Qué es la Cadena de Valor?</h4>
-                <p style="color: #2e7d32; margin-bottom: 15px;">
-                    La Cadena de Valor de Porter identifica las actividades que crean valor en una organización, 
-                    dividiéndolas en actividades primarias y de soporte.
-                </p>
-                <div class="tips-content">
-                    <div class="tip-section">
-                        <h5><i class="fas fa-cogs"></i> Actividades Primarias</h5>
-                        <ul>
-                            <li><strong>Logística Interna:</strong> Recepción y almacenamiento</li>
-                            <li><strong>Operaciones:</strong> Transformación de materias primas</li>
-                            <li><strong>Logística Externa:</strong> Distribución de productos</li>
-                            <li><strong>Marketing:</strong> Promoción y ventas</li>
-                            <li><strong>Servicios:</strong> Postventa y soporte</li>
-                        </ul>
+                <% if (!modoColaborativo) { %>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i>
+                        Para utilizar esta funcionalidad, debe estar en modo colaborativo. 
+                        <a href="dashboard.jsp">Ir al Dashboard</a> para unirse a un grupo.
                     </div>
-                    <div class="tip-section">
-                        <h5><i class="fas fa-building"></i> Actividades de Soporte</h5>
-                        <ul>
-                            <li><strong>Infraestructura:</strong> Gestión, finanzas, legal</li>
-                            <li><strong>Recursos Humanos:</strong> Selección, capacitación</li>
-                            <li><strong>Tecnología:</strong> I+D, sistemas de información</li>
-                            <li><strong>Compras:</strong> Adquisición de materiales</li>
-                        </ul>
+                <% } %>
+
+                <form method="post" action="cadena_valor_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "" %>">
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-clipboard-check"></i> Autodiagnóstico de la Cadena de Valor Interna</h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="instructions">
+                                A continuación marque con una X para valorar su empresa en función de cada una de las afirmaciones, de tal forma que 0= En total en desacuerdo, 1= No está de acuerdo, 2=Está de acuerdo, 3= Está bastante de acuerdo, 4=En total acuerdo. En caso de no cumplimentar una casilla o duplicar su respuesta le aparecerá el mensaje de error ("¡REF!")
+                            </div>
+
+                            <table class="diagnostic-table">
+                                <thead>
+                                    <tr>
+                                        <th>AUTODIAGNÓSTICO DE LA CADENA DE VALOR INTERNA</th>
+                                        <th colspan="5">VALORACIÓN</th>
+                                    </tr>
+                                    <tr>
+                                        <th></th>
+                                        <th>0</th>
+                                        <th>1</th>
+                                        <th>2</th>
+                                        <th>3</th>
+                                        <th>4</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for (int i = 0; i < 25; i++) { %>
+                                        <tr>
+                                            <td><%= (i + 1) %>. <%= afirmaciones[i] %></td>
+                                            <% for (int j = 0; j <= 4; j++) { %>
+                                                <td>
+                                                    <input type="radio" 
+                                                           name="afirmacion_<%= (i + 1) %>" 
+                                                           value="<%= j %>"
+                                                           <%= valoraciones[i].equals(String.valueOf(j)) ? "checked" : "" %>
+                                                           <%= !modoColaborativo ? "disabled" : "" %>>
+                                                </td>
+                                            <% } %>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                            
+                            <!-- Sección de Potencial de Mejora -->
+                            <div style="margin-top: 24px; padding: 16px; background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="background: #6c757d; color: white; padding: 12px; text-align: center; font-weight: bold; border: 1px solid #495057;">
+                                            POTENCIAL DE MEJORA DE LA CADENA DE VALOR INTERNA
+                                        </td>
+                                        <td style="background: #e9ecef; padding: 12px; text-align: center; font-weight: bold; border: 1px solid #495057; color: #0066cc;">
+                                            <% if (modoColaborativo && respuestasCompletas == 25) { %>
+                                                <%= String.format("%.0f", porcentajeMejora) %>%
+                                            <% } else { %>
+                                                #¡REF!
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="dashboard-section reflection-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-lightbulb"></i> Reflexión</h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="reflection-box">
+                                <div class="reflection-text">
+                                    Reflexione sobre el resultado obtenido. Anote aquellas observaciones que puedan ser de su interés. Identifique sus fortalezas y debilidades respecto a su cadena de valor
+                                </div>
+                                <textarea class="reflection-textarea" 
+                                          name="reflexion" 
+                                          placeholder="Escriba aquí sus reflexiones sobre el autodiagnóstico..."
+                                          <%= !modoColaborativo ? "disabled" : "" %>><%= reflexion %></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="strengths-weaknesses">
+                        <div class="sw-section strengths">
+                            <div class="sw-header">FORTALEZAS</div>
+                            <div class="sw-content">
+                                <div class="sw-item">
+                                    <span class="sw-label">F1:</span>
+                                    <input type="text" 
+                                           class="sw-input" 
+                                           name="fortaleza1" 
+                                           value="<%= fortaleza1 %>"
+                                           <%= !modoColaborativo ? "disabled" : "" %>>
+                                </div>
+                                <div class="sw-item">
+                                    <span class="sw-label">F2:</span>
+                                    <input type="text" 
+                                           class="sw-input" 
+                                           name="fortaleza2" 
+                                           value="<%= fortaleza2 %>"
+                                           <%= !modoColaborativo ? "disabled" : "" %>>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sw-section weaknesses">
+                            <div class="sw-header">DEBILIDADES</div>
+                            <div class="sw-content">
+                                <div class="sw-item">
+                                    <span class="sw-label">D1:</span>
+                                    <input type="text" 
+                                           class="sw-input" 
+                                           name="debilidad1" 
+                                           value="<%= debilidad1 %>"
+                                           <%= !modoColaborativo ? "disabled" : "" %>>
+                                </div>
+                                <div class="sw-item">
+                                    <span class="sw-label">D2:</span>
+                                    <input type="text" 
+                                           class="sw-input" 
+                                           name="debilidad2" 
+                                           value="<%= debilidad2 %>"
+                                           <%= !modoColaborativo ? "disabled" : "" %>>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <% if (modoColaborativo) { %>
+                        <div class="save-button-container">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i>
+                                Guardar Autodiagnóstico
+                            </button>
+                        </div>
+                    <% } %>
+                </form>
             </div>
-
-            <form method="post" action="">
-                <div class="value-chain-container">
-                    <!-- Actividades de Soporte -->
-                    <div class="section-title">
-                        <i class="fas fa-building"></i> Actividades de Soporte
-                    </div>
-                    <div class="support-activities">
-                        <!-- Infraestructura -->
-                        <div class="activity-card infraestructura-card">
-                            <h3>
-                                <i class="fas fa-building" style="color: #9c27b0;"></i>
-                                Infraestructura
-                            </h3>
-                            <div class="activity-subtitle">Gestión general de la empresa</div>
-                            <div class="form-group">
-                                <label for="infraestructura">Infraestructura de la Empresa:</label>
-                                <textarea id="infraestructura" name="infraestructura" 
-                                          placeholder="Describe la gestión general, finanzas, legal, calidad, relaciones públicas..."
-                                          ><%= infraestructura %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Estructura organizacional, sistemas de gestión, finanzas, legal, planificación estratégica
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recursos Humanos -->
-                        <div class="activity-card recursos-card">
-                            <h3>
-                                <i class="fas fa-users" style="color: #ff5722;"></i>
-                                Recursos Humanos
-                            </h3>
-                            <div class="activity-subtitle">Gestión del talento humano</div>
-                            <div class="form-group">
-                                <label for="recursos_humanos">Gestión de Recursos Humanos:</label>
-                                <textarea id="recursos_humanos" name="recursos_humanos" 
-                                          placeholder="Describe reclutamiento, selección, capacitación, desarrollo, compensación..."
-                                          ><%= recursosHumanos %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Reclutamiento, capacitación, evaluación, compensación, desarrollo profesional
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Desarrollo Tecnológico -->
-                        <div class="activity-card tecnologia-card">
-                            <h3>
-                                <i class="fas fa-laptop-code" style="color: #2196f3;"></i>
-                                Tecnología
-                            </h3>
-                            <div class="activity-subtitle">I+D y desarrollo tecnológico</div>
-                            <div class="form-group">
-                                <label for="tecnologia">Desarrollo Tecnológico:</label>
-                                <textarea id="tecnologia" name="tecnologia" 
-                                          placeholder="Describe I+D, innovación, sistemas de información, automatización..."
-                                          ><%= tecnologia %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: I+D, sistemas de información, automatización, innovación tecnológica, patentes
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Compras -->
-                        <div class="activity-card compras-card">
-                            <h3>
-                                <i class="fas fa-shopping-cart" style="color: #ff9800;"></i>
-                                Compras
-                            </h3>
-                            <div class="activity-subtitle">Adquisición de insumos</div>
-                            <div class="form-group">
-                                <label for="compras">Actividades de Compras:</label>
-                                <textarea id="compras" name="compras" 
-                                          placeholder="Describe adquisición de materias primas, equipos, servicios, negociación..."
-                                          ><%= compras %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Selección de proveedores, negociación, adquisición de materiales, control de calidad de insumos
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actividades Primarias -->
-                    <div class="section-title">
-                        <i class="fas fa-cogs"></i> Actividades Primarias
-                    </div>
-                    <div class="primary-activities">
-                        <!-- Logística Interna -->
-                        <div class="activity-card logistica-interna-card">
-                            <h3>
-                                <i class="fas fa-warehouse" style="color: #4caf50;"></i>
-                                Logística Interna
-                            </h3>
-                            <div class="activity-subtitle">Recepción y almacenamiento</div>
-                            <div class="form-group">
-                                <label for="logistica_interna">Logística Interna:</label>
-                                <textarea id="logistica_interna" name="logistica_interna" 
-                                          placeholder="Describe recepción, almacenamiento, control de inventarios, manejo de materiales..."
-                                          ><%= logisticaInterna %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Recepción de materiales, almacenamiento, control de inventarios, manejo interno
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Operaciones -->
-                        <div class="activity-card operaciones-card">
-                            <h3>
-                                <i class="fas fa-industry" style="color: #f44336;"></i>
-                                Operaciones
-                            </h3>
-                            <div class="activity-subtitle">Transformación de productos</div>
-                            <div class="form-group">
-                                <label for="operaciones">Operaciones:</label>
-                                <textarea id="operaciones" name="operaciones" 
-                                          placeholder="Describe manufactura, ensamblaje, control de calidad, mantenimiento..."
-                                          ><%= operaciones %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Manufactura, ensamblaje, control de calidad, mantenimiento, procesos productivos
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Logística Externa -->
-                        <div class="activity-card logistica-externa-card">
-                            <h3>
-                                <i class="fas fa-truck" style="color: #607d8b;"></i>
-                                Logística Externa
-                            </h3>
-                            <div class="activity-subtitle">Distribución de productos</div>
-                            <div class="form-group">
-                                <label for="logistica_externa">Logística Externa:</label>
-                                <textarea id="logistica_externa" name="logistica_externa" 
-                                          placeholder="Describe distribución, entrega, gestión de pedidos, canales de distribución..."
-                                          ><%= logisticaExterna %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Distribución, entrega, gestión de pedidos, canales de distribución, transporte
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Marketing y Ventas -->
-                        <div class="activity-card marketing-card">
-                            <h3>
-                                <i class="fas fa-bullhorn" style="color: #e91e63;"></i>
-                                Marketing
-                            </h3>
-                            <div class="activity-subtitle">Promoción y ventas</div>
-                            <div class="form-group">
-                                <label for="marketing">Marketing y Ventas:</label>
-                                <textarea id="marketing" name="marketing" 
-                                          placeholder="Describe promoción, publicidad, ventas, investigación de mercados, pricing..."
-                                          ><%= marketingVentas %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Publicidad, promoción, ventas, investigación de mercados, estrategias de precios
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Servicios -->
-                        <div class="activity-card servicios-card">
-                            <h3>
-                                <i class="fas fa-headset" style="color: #00bcd4;"></i>
-                                Servicios
-                            </h3>
-                            <div class="activity-subtitle">Postventa y soporte</div>
-                            <div class="form-group">
-                                <label for="servicios">Servicios Postventa:</label>
-                                <textarea id="servicios" name="servicios" 
-                                          placeholder="Describe servicio al cliente, soporte técnico, garantías, mantenimiento..."
-                                          ><%= serviciosPostventa %></textarea>
-                                <div class="activity-examples">
-                                    Ejemplos: Servicio al cliente, soporte técnico, garantías, mantenimiento, capacitación de usuarios
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="text-align: center; margin-top: 30px;">
-                    <button type="submit" class="btn btn-primary" style="padding: 15px 40px; font-size: 16px;">
-                        <i class="fas fa-save"></i> Guardar Cadena de Valor
-                    </button>
-                </div>
-            </form>
-
-            <!-- Vista Previa -->
-            <div class="preview-section">
-                <h3><i class="fas fa-eye"></i> Resumen de la Cadena de Valor</h3>
-                <div class="preview-chain" id="previewChain">
-                    <!-- Se llenará dinámicamente -->
-                </div>
-            </div>
-
-            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                <p style="color: #2d5a3d; margin: 0;">
-                    <i class="fas fa-info-circle"></i> 
-                    <strong>Modo Colaborativo:</strong> La Cadena de Valor se guarda automáticamente y es visible 
-                    para todos los miembros del grupo <strong><%= grupoActual %></strong>.
-                </p>
-            </div>
-
-            <% } %>
         </div>
     </div>
 
     <script>
-        function actualizarPreview() {
-            const actividades = {
-                soporte: [
-                    { id: 'infraestructura', titulo: 'Infraestructura', color: '#9c27b0' },
-                    { id: 'recursos_humanos', titulo: 'RRHH', color: '#ff5722' },
-                    { id: 'tecnologia', titulo: 'Tecnología', color: '#2196f3' },
-                    { id: 'compras', titulo: 'Compras', color: '#ff9800' }
-                ],
-                primarias: [
-                    { id: 'logistica_interna', titulo: 'Log. Interna', color: '#4caf50' },
-                    { id: 'operaciones', titulo: 'Operaciones', color: '#f44336' },
-                    { id: 'logistica_externa', titulo: 'Log. Externa', color: '#607d8b' },
-                    { id: 'marketing', titulo: 'Marketing', color: '#e91e63' },
-                    { id: 'servicios', titulo: 'Servicios', color: '#00bcd4' }
-                ]
-            };
-            
-            const previewChain = document.getElementById('previewChain');
-            previewChain.innerHTML = '';
-            
-            // Actividades de Soporte
-            const soporteRow = document.createElement('div');
-            soporteRow.className = 'preview-row preview-support';
-            
-            actividades.soporte.forEach(actividad => {
-                const elemento = document.getElementById(actividad.id);
-                const texto = elemento ? elemento.value : '';
-                
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'preview-item';
-                previewDiv.style.borderTopColor = actividad.color;
-                previewDiv.innerHTML = `
-                    <h5 style="color: #333; margin-bottom: 8px; font-size: 14px;">
-                        ${actividad.titulo}
-                    </h5>
-                    <p style="font-size: 12px; line-height: 1.4; color: #555;">
-                        ${texto || 'No definido'}
-                    </p>
-                `;
-                soporteRow.appendChild(previewDiv);
-            });
-            
-            previewChain.appendChild(soporteRow);
-            
-            // Actividades Primarias
-            const primariaRow = document.createElement('div');
-            primariaRow.className = 'preview-row preview-primary';
-            
-            actividades.primarias.forEach(actividad => {
-                const elemento = document.getElementById(actividad.id);
-                const texto = elemento ? elemento.value : '';
-                
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'preview-item';
-                previewDiv.style.borderTopColor = actividad.color;
-                previewDiv.innerHTML = `
-                    <h5 style="color: #333; margin-bottom: 8px; font-size: 14px;">
-                        ${actividad.titulo}
-                    </h5>
-                    <p style="font-size: 12px; line-height: 1.4; color: #555;">
-                        ${texto || 'No definido'}
-                    </p>
-                `;
-                primariaRow.appendChild(previewDiv);
-            });
-            
-            previewChain.appendChild(primariaRow);
+        function logout() {
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                window.location.href = 'logout.jsp';
+            }
         }
 
-        // Agregar listeners
+        // Validar que solo se seleccione una opción por fila
         document.addEventListener('DOMContentLoaded', function() {
-            const campos = ['infraestructura', 'recursos_humanos', 'tecnologia', 'compras', 
-                           'logistica_interna', 'operaciones', 'logistica_externa', 'marketing', 'servicios'];
-            campos.forEach(id => {
-                const elemento = document.getElementById(id);
-                if (elemento) {
-                    elemento.addEventListener('input', actualizarPreview);
-                }
-            });
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
             
-            // Actualizar preview inicial
-            actualizarPreview();
-        });
-
-        // Auto-refresh cada 15 segundos
-        setInterval(function() {
-            const inputs = document.querySelectorAll('textarea');
-            let hayChanged = false;
-            inputs.forEach(input => {
-                if (input.dataset.changed === 'true') {
-                    hayChanged = true;
-                }
-            });
-            
-            if (!hayChanged) {
-                location.reload();
-            }
-        }, 15000);
-
-        // Marcar como cambiado
-        document.querySelectorAll('textarea').forEach(element => {
-            element.addEventListener('input', function() {
-                this.dataset.changed = 'true';
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Lógica adicional si es necesaria
+                });
             });
         });
     </script>

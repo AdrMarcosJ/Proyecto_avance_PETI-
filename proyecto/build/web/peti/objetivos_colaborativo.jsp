@@ -41,13 +41,22 @@
         boolean exito = true;
         
         try {
-            // Guardar objetivo general
+            // PASO 1: Eliminar TODOS los objetivos específicos existentes (objetivo1, objetivo2, etc.)
+            // Esto asegura que los objetivos eliminados en el front se eliminen también del servidor
+            Map<String, String> datosExistentes = negocioPeti.obtenerDatosSeccion(grupoId, "objetivos");
+            for (String campo : datosExistentes.keySet()) {
+                if (campo.startsWith("objetivo") && !campo.equals("objetivo_general")) {
+                    negocioPeti.eliminarDato(grupoId, "objetivos", campo, usuarioId);
+                }
+            }
+            
+            // PASO 2: Guardar objetivo general
             if (nuevoObjetivoGeneral != null && !nuevoObjetivoGeneral.trim().isEmpty()) {
                 ClsEPeti dato = new ClsEPeti(grupoId, "objetivos", "objetivo_general", nuevoObjetivoGeneral.trim(), usuarioId);
                 exito = exito && negocioPeti.guardarDato(dato);
             }
             
-            // Guardar objetivos específicos dinámicamente
+            // PASO 3: Guardar objetivos específicos que vienen del formulario
             java.util.Enumeration<String> paramNames = request.getParameterNames();
             while (paramNames.hasMoreElements()) {
                 String paramName = paramNames.nextElement();
@@ -60,7 +69,7 @@
                 }
             }
             
-            // Guardar indicadores y metas
+            // PASO 4: Guardar indicadores y metas
             if (nuevosIndicadores != null && !nuevosIndicadores.trim().isEmpty()) {
                 ClsEPeti dato = new ClsEPeti(grupoId, "objetivos", "indicadores", nuevosIndicadores.trim(), usuarioId);
                 exito = exito && negocioPeti.guardarDato(dato);
@@ -104,6 +113,21 @@
             //System.err.println("Error al cargar datos: " + e.getMessage());
         }
     }
+    
+    // Generar iniciales del usuario
+    String userInitials = "U";
+    if (usuario != null && usuario.length() > 0) {
+        userInitials = usuario.substring(0, 1).toUpperCase();
+        if (usuario.contains(" ") && usuario.length() > usuario.indexOf(" ") + 1) {
+            userInitials += usuario.substring(usuario.indexOf(" ") + 1, usuario.indexOf(" ") + 2).toUpperCase();
+        }
+    }
+    
+    // Obtener información del usuario para mostrar en el dashboard
+    String userEmail = (String) session.getAttribute("email");
+    if (userEmail == null) {
+        userEmail = "usuario@ejemplo.com";
+    }
 %>
 
 <!DOCTYPE html>
@@ -114,1026 +138,1169 @@
     <title>Objetivos Estratégicos - PETI Colaborativo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2d3748;
+            --accent-color: #3182ce;
+            --success-color: #38a169;
+            --warning-color: #d69e2e;
+            --danger-color: #e53e3e;
+            --light-bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
+            background: var(--light-bg);
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+
+        .dashboard-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .dashboard-sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--primary-color);
+            color: white;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .company-logo i {
+            font-size: 28px;
+            margin-right: 12px;
+            color: var(--accent-color);
+        }
+
+        .company-logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .user-info p {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .dashboard-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
             overflow-x: hidden;
         }
 
-        body::before {
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            padding: 0 20px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .dashboard-nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .dashboard-nav li {
+            margin-bottom: 2px;
+        }
+
+        .dashboard-nav a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .dashboard-nav a i {
+            margin-right: 12px;
+            width: 18px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .dashboard-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .dashboard-nav li.active a {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .dashboard-nav li.active a::before {
             content: '';
-            position: fixed;
-            top: 0;
+            position: absolute;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            z-index: -1;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: white;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .dashboard-content {
+            flex: 1;
+            background: var(--light-bg);
+            overflow-y: auto;
+            height: 100vh;
         }
 
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 25px;
+        .dashboard-header {
+            background: var(--card-bg);
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-sm);
         }
 
-        .header h1 {
-            color: #2c3e50;
-            font-size: 28px;
+        .dashboard-header h1 {
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+
+        .header-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
-            font-weight: 700;
+            gap: 16px;
         }
 
-        .objectives-logo {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 18px;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .grupo-info {
-            font-size: 16px;
-            color: #7f8c8d;
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: rgba(49, 130, 206, 0.1);
+            color: var(--accent-color);
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 500;
         }
 
-        .nav-buttons {
-            display: flex;
-            gap: 12px;
+        .status-badge i {
+            margin-right: 6px;
         }
 
-        .btn {
-            padding: 12px 24px;
+        .admin-badge {
+            background: rgba(214, 158, 46, 0.1);
+            color: var(--warning-color);
+            margin-left: 8px;
+        }
+
+        .dashboard-main {
+            padding: 32px;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
             text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: #2c5282;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary i {
+            margin-right: 8px;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.9);
-            color: #2c3e50;
-            border: 1px solid rgba(52, 152, 219, 0.2);
+            text-decoration: none;
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: translateY(-1px);
+            background: #7f8c8d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .content {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 35px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .dashboard-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(26, 54, 93, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .section-content {
+            padding: 24px;
         }
 
         .alert {
             padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             font-weight: 500;
             display: flex;
             align-items: center;
             gap: 10px;
-            backdrop-filter: blur(20px);
         }
 
         .alert-success {
-            background: rgba(39, 174, 96, 0.9);
-            color: white;
-            border: 1px solid rgba(39, 174, 96, 0.3);
+            background: rgba(56, 161, 105, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(56, 161, 105, 0.2);
         }
 
         .alert-error {
-            background: rgba(231, 76, 60, 0.9);
-            color: white;
-            border: 1px solid rgba(231, 76, 60, 0.3);
+            background: rgba(229, 62, 62, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(229, 62, 62, 0.2);
         }
 
-        .modo-info {
-            background: rgba(52, 152, 219, 0.1);
-            border: 1px solid rgba(52, 152, 219, 0.2);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            color: #2c3e50;
+        .alert-warning {
+            background: rgba(214, 158, 46, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(214, 158, 46, 0.2);
         }
 
-        .objetivo-principal {
-            background: rgba(52, 152, 219, 0.1);
-            border: 2px solid rgba(52, 152, 219, 0.3);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .objetivo-principal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
-        }
-
-        .objetivo-principal h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .objetivos-especificos {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .objetivo-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(52, 152, 219, 0.2);
-            border-radius: 15px;
-            padding: 25px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .objetivo-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
-        }
-
-        .objetivo-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(52, 152, 219, 0.4);
-            box-shadow: 0 15px 40px rgba(52, 152, 219, 0.15);
-        }
-
-        .objetivo-card h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-icon {
-            width: 35px;
-            height: 35px;
+        .guide-section {
+            background: rgba(49, 130, 206, 0.05);
+            border: 1px solid rgba(49, 130, 206, 0.1);
             border-radius: 8px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-        }
-        .card-icon {
-            width: 35px;
-            height: 35px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            color: #2c3e50;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid rgba(52, 152, 219, 0.2);
-            border-radius: 12px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-        }
-
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-            line-height: 1.6;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-            background: rgba(255, 255, 255, 1);
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: #bdc3c7;
-        }
-
-        .btn-save {
-            background: linear-gradient(135deg, #27ae60 0%, #16a085 100%);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-        }
-
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
-        }
-
-        .preview-section {
-            background: rgba(248, 249, 250, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 25px;
-            border: 1px solid rgba(52, 152, 219, 0.1);
-        }
-
-        .preview-section h3 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .objetivo-preview {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
             padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #3498db;
-            transition: all 0.3s ease;
+            margin-bottom: 24px;
         }
 
-        .objetivo-preview:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);
-        }
-
-        .objetivo-preview h4 {
-            color: #2c3e50;
-            margin-bottom: 10px;
+        .guide-section h3 {
+            color: var(--accent-color);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 16px;
         }
 
-        .objetivo-preview p {
-            color: #5a6c7d;
-            line-height: 1.6;
-        }
-
-        .tips-box {
-            background: rgba(39, 174, 96, 0.1);
-            border: 1px solid rgba(39, 174, 96, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .tips-box h4 {
-            color: #27ae60;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 18px;
-        }
-
-        .tips-box ul {
+        .guide-section ul {
             list-style: none;
             padding: 0;
         }
 
-        .tips-box li {
-            color: #2c3e50;
+        .guide-section li {
+            color: var(--text-primary);
             margin-bottom: 8px;
             padding-left: 20px;
             position: relative;
         }
 
-        .tips-box li::before {
+        .guide-section li::before {
             content: '✓';
             position: absolute;
             left: 0;
-            color: #27ae60;
+            color: var(--success-color);
             font-weight: bold;
         }
 
-        .action-buttons {
+        .guide-tip {
+            background: rgba(49, 130, 206, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 12px 16px;
+            margin-top: 16px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .guide-tip i {
+            color: var(--accent-color);
+            margin-right: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .form-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .saved-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--success-color);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .preview-card {
+            background: rgba(26, 54, 93, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .preview-card h4 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .preview-element {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .preview-element h5 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .preview-element p {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .mode-info {
+            background: rgba(214, 158, 46, 0.1);
+            border: 1px solid rgba(214, 158, 46, 0.2);
+            color: var(--warning-color);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .save-button-container {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
+            margin-top: 24px;
         }
 
-        .btn-remove {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        .btn-save {
+            background: var(--success-color);
             color: white;
-            padding: 6px 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
+            transition: all 0.2s ease;
+            display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 12px;
-            box-shadow: 0 2px 10px rgba(231, 76, 60, 0.3);
+            gap: 8px;
         }
 
-        .btn-remove:hover {
+        .btn-save:hover {
+            background: #2f855a;
             transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            box-shadow: var(--shadow-md);
+        }
+
+        .objetivos-especificos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
         }
 
         .objetivo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s ease;
             position: relative;
         }
 
-        .objetivo-card.removing {
-            animation: fadeOut 0.3s ease;
+        .objetivo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(-20px); }
+        .objetivo-card h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
         }
 
-        .objetivo-card.adding {
-            animation: fadeIn 0.3s ease;
+        .btn-remove {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-remove:hover {
+            background: #c53030;
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            .dashboard-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
             }
             
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
+            .dashboard-sidebar {
+                width: 100%;
+                order: 2;
+            }
+            
+            .dashboard-content {
+                order: 1;
+                margin-left: 0;
+                height: auto;
+            }
+            
+            .dashboard-main {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
             }
             
             .objetivos-especificos {
                 grid-template-columns: 1fr;
             }
             
-            .nav-buttons {
-                flex-wrap: wrap;
-                justify-content: center;
+            .dashboard-header {
+                padding: 16px 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
             }
         }
-        </style>
-    </head>
-
+    </style>
+</head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>
-                <div class="objectives-logo">OBJ</div>
-                Objetivos Estratégicos
-            </h1>
-            <% if (modoColaborativo) { %>
-                <div class="grupo-info">
-                    <div><strong>Grupo:</strong> <%= grupoActual %></div>
-                    <div><strong>Usuario:</strong> <%= usuario %> (<%= rolUsuario %>)</div>
+    <div class="dashboard-container">
+        <div class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <div class="company-logo">
+                    <i class="fas fa-building"></i>
+                    <h2>PETI System</h2>
                 </div>
-            <% } %>
-            <div class="nav-buttons">
-                <a href="dashboard.jsp" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Dashboard
-                </a>
-                <a href="../menuprincipal.jsp" class="btn btn-primary">
-                    <i class="fas fa-home"></i> Menú Principal
-                </a>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <span><%= userInitials %></span>
+                    </div>
+                    <div class="user-info">
+                        <h3><%= usuario %></h3>
+                        <p><%= userEmail %></p>
+                    </div>
+                </div>
             </div>
+            <nav class="dashboard-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <ul>
+                        <li><a href="dashboard.jsp"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Planificación Estratégica</div>
+                    <ul>
+                        <li><a href="empresa_colaborativo.jsp"><i class="fas fa-building"></i> Información Empresarial</a></li>
+                        <li><a href="mision_colaborativo.jsp"><i class="fas fa-bullseye"></i> Misión Corporativa</a></li>
+                        <li><a href="vision_colaborativo.jsp"><i class="fas fa-eye"></i> Visión Estratégica</a></li>
+                        <li><a href="valores_colaborativo.jsp"><i class="fas fa-heart"></i> Valores Organizacionales</a></li>
+                        <li class="active"><a href="objetivos_colaborativo.jsp"><i class="fas fa-target"></i> Objetivos Estratégicos</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Análisis Estratégico</div>
+                    <ul>
+                        <li><a href="analisis_externo_colaborativo.jsp"><i class="fas fa-search"></i> Análisis del Entorno</a></li>
+                        <li><a href="analisis_interno_colaborativo.jsp"><i class="fas fa-chart-bar"></i> Análisis Organizacional</a></li>
+                 
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Herramientas de Gestión</div>
+                    <ul>
+      
+                        <li><a href="cadena_valor_colaborativo.jsp"><i class="fas fa-link"></i> Cadena de Valor</a></li>
+
+                        <li><a href="matriz_participacion_colaborativo.jsp"><i class="fas fa-users"></i> Matriz de Participación</a></li>
+                         <li><a href="autodiagnostico_BCG.jsp"><i class="fas fa-users"></i> autodiagnostico_BCG</a></li>
+                        <li><a href="resumen-ejecutivo-colaborativo.jsp"><i class="fas fa-file-alt"></i> Resumen Ejecutivo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <ul>
+                        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+            </nav>
         </div>
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
-                <a href="../menuprincipal.jsp" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i> Menú Principal
-                </a>
-            </div>
-        </div>
 
-        <div class="content">
-            <% if (!mensaje.isEmpty()) { %>
-                <div class="alert alert-<%= tipoMensaje %>">
-                    <i class="fas fa-<%= "success".equals(tipoMensaje) ? "check-circle" : "exclamation-triangle" %>"></i>
-                    <%= mensaje %>
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h1>Objetivos Estratégicos</h1>
+                <div class="header-actions">
+                    <% if (modoColaborativo) { %>
+                        <span class="status-badge">
+                            <i class="fas fa-users"></i>
+                            Modo Colaborativo
+                        </span>
+                        <% if ("Administrador".equals(rolUsuario)) { %>
+                            <span class="status-badge admin-badge">
+                                <i class="fas fa-crown"></i>
+                                Administrador
+                            </span>
+                        <% } %>
+                    <% } %>
+                    <a href="../menuprincipal.jsp" class="btn-primary">
+                        <i class="fas fa-home"></i>
+                        Menú Principal
+                    </a>
                 </div>
-            <% } %>
-
-            <% if (!modoColaborativo) { %>
-                <div class="alert" style="background: #fff3cd; border: 1px solid #ffeaa7; color: #856404;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Error:</strong> Debes estar en un grupo para acceder a esta página.
-                    <a href="../menuprincipal.jsp" style="color: #856404; text-decoration: underline;">Ir al menú principal</a>
-                </div>
-            <% } else { %>
-
-            <div class="tips-box">
-                <h4><i class="fas fa-lightbulb"></i> Guía para definir Objetivos Estratégicos</h4>
-                <ul>
-                    <li><strong>SMART:</strong> Específicos, Medibles, Alcanzables, Relevantes y con Tiempo definido</li>
-                    <li><strong>Alineados:</strong> Deben conectar con la misión y visión de la empresa</li>
-                    <li><strong>Realistas:</strong> Ambiciosos pero factibles con los recursos disponibles</li>
-                    <li><strong>Medibles:</strong> Incluir indicadores que permitan evaluar el progreso</li>
-                </ul>
             </div>
 
-            <form method="post" action="" onsubmit="return sincronizarTodosLosCampos()">
-                <!-- Campos hidden para preservar objetivos dinámicos -->
-                <div id="hiddenFields">
-                    <% 
-                    // Generar campos hidden para objetivos adicionales existentes
-                    if (modoColaborativo && todosLosObjetivos != null) {
-                        for (String key : todosLosObjetivos.keySet()) {
-                            if (key.startsWith("objetivo") && !key.equals("objetivo_general") && 
-                                !key.equals("objetivo1") && !key.equals("objetivo2") && 
-                                !key.equals("objetivo3") && !key.equals("objetivo4")) {
-                                String valor = todosLosObjetivos.get(key);
-                                if (valor != null && !valor.trim().isEmpty()) {
-                    %>
-                                    <input type="hidden" name="<%= key %>" value="<%= valor.replace("\"", "&quot;") %>" />
-                    <%
+            <div class="dashboard-main">
+                <% if (!mensaje.isEmpty()) { %>
+                    <div class="alert alert-<%= tipoMensaje %>">
+                        <i class="fas fa-<%= "success".equals(tipoMensaje) ? "check-circle" : "exclamation-triangle" %>"></i>
+                        <%= mensaje %>
+                    </div>
+                <% } %>
+
+                <% if (!modoColaborativo) { %>
+                    <div class="mode-info">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Modo Individual:</strong> Debes estar en un grupo para acceder a esta funcionalidad colaborativa.
+                        <a href="../menuprincipal.jsp" style="color: var(--warning-color); text-decoration: underline;">Ir al menú principal</a>
+                    </div>
+                <% } else { %>
+
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-lightbulb"></i> Guía para Objetivos Estratégicos</h2>
+                    </div>
+                    <div class="section-content">
+                        <div class="guide-section">
+                            <h3><i class="fas fa-info-circle"></i> Características de objetivos SMART</h3>
+                            <ul>
+                                <li><strong>Específicos:</strong> Claros y bien definidos para su empresa</li>
+                                <li><strong>Medibles:</strong> Con indicadores cuantificables y métricas específicas</li>
+                                <li><strong>Alcanzables:</strong> Realistas según los recursos y capacidades de su organización</li>
+                                <li><strong>Relevantes:</strong> Alineados con la misión, visión y valores de su empresa</li>
+                                <li><strong>Temporales:</strong> Con plazos definidos y cronogramas claros</li>
+                            </ul>
+                            <div class="guide-tip">
+                                <i class="fas fa-lightbulb"></i>
+                                <strong>Consejo:</strong> Los objetivos estratégicos deben reflejar las aspiraciones de crecimiento y desarrollo específicas de su sector de negocio.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post" action="" onsubmit="return sincronizarTodosLosCampos()">
+                    <!-- Campos hidden para preservar objetivos dinámicos -->
+                    <div id="hiddenFields">
+                        <!-- Los campos hidden se crearán dinámicamente con JavaScript -->
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-target"></i> Objetivo General</h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="objetivo_general">Objetivo General de su Empresa</label>
+                                <textarea name="objetivo_general" id="objetivo_general" 
+                                         placeholder="Ejemplo: Posicionar a nuestra empresa como líder en [su sector] mediante la innovación, calidad de servicio y expansión estratégica, alcanzando un crecimiento sostenible del 20% anual en los próximos 3 años..."
+                                         onkeyup="actualizarVistaPrevia()"><%= objetivoGeneral %></textarea>
+                                <% if (!objetivoGeneral.isEmpty()) { %>
+                                    <div class="saved-indicator">
+                                        <i class="fas fa-check-circle"></i>
+                                        Guardado automáticamente
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-list"></i> Objetivos Específicos</h2>
+                            <button type="button" class="btn-primary" onclick="agregarObjetivo()">
+                                <i class="fas fa-plus"></i>
+                                Agregar Objetivo
+                            </button>
+                        </div>
+                        <div class="section-content">
+                            <div class="objetivos-especificos" id="objetivosContainer">
+                                <!-- Objetivos específicos predefinidos -->
+                                <div class="objetivo-card">
+                                    <h3><span class="card-icon">1</span> Objetivo Específico 1</h3>
+                                    <div class="form-group">
+                                        <textarea name="objetivo1" id="objetivo1" 
+                                                 placeholder="Ejemplo: Incrementar las ventas en un 25% durante el próximo año fiscal mediante la implementación de nuevas estrategias de marketing digital y expansión a mercados regionales..."
+                                                 onkeyup="actualizarVistaPrevia()"><%= objetivo1 %></textarea>
+                                        <% if (!objetivo1.isEmpty()) { %>
+                                            <div class="saved-indicator">
+                                                <i class="fas fa-check-circle"></i>
+                                                Guardado
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+
+                                <div class="objetivo-card">
+                                    <h3><span class="card-icon">2</span> Objetivo Específico 2</h3>
+                                    <div class="form-group">
+                                        <textarea name="objetivo2" id="objetivo2" 
+                                                 placeholder="Ejemplo: Mejorar la satisfacción del cliente alcanzando un índice de satisfacción del 95% mediante la optimización de procesos de atención y capacitación del personal..."
+                                                 onkeyup="actualizarVistaPrevia()"><%= objetivo2 %></textarea>
+                                        <% if (!objetivo2.isEmpty()) { %>
+                                            <div class="saved-indicator">
+                                                <i class="fas fa-check-circle"></i>
+                                                Guardado
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+
+                                <div class="objetivo-card">
+                                    <h3><span class="card-icon">3</span> Objetivo Específico 3</h3>
+                                    <div class="form-group">
+                                        <textarea name="objetivo3" id="objetivo3" 
+                                                 placeholder="Ejemplo: Reducir los costos operativos en un 15% mediante la automatización de procesos clave y la optimización de la cadena de suministro..."
+                                                 onkeyup="actualizarVistaPrevia()"><%= objetivo3 %></textarea>
+                                        <% if (!objetivo3.isEmpty()) { %>
+                                            <div class="saved-indicator">
+                                                <i class="fas fa-check-circle"></i>
+                                                Guardado
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+
+                                <div class="objetivo-card">
+                                    <h3><span class="card-icon">4</span> Objetivo Específico 4</h3>
+                                    <div class="form-group">
+                                        <textarea name="objetivo4" id="objetivo4" 
+                                                 placeholder="Ejemplo: Desarrollar e implementar 3 nuevos productos/servicios innovadores que respondan a las necesidades emergentes del mercado en los próximos 18 meses..."
+                                                 onkeyup="actualizarVistaPrevia()"><%= objetivo4 %></textarea>
+                                        <% if (!objetivo4.isEmpty()) { %>
+                                            <div class="saved-indicator">
+                                                <i class="fas fa-check-circle"></i>
+                                                Guardado
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+
+                                <!-- Objetivos adicionales dinámicos -->
+                                <% 
+                                int contadorObjetivos = 5;
+                                for (Map.Entry<String, String> entry : todosLosObjetivos.entrySet()) {
+                                    String key = entry.getKey();
+                                    String value = entry.getValue();
+                                    if (key.startsWith("objetivo") && !key.equals("objetivo_general") && 
+                                        !key.equals("objetivo1") && !key.equals("objetivo2") && 
+                                        !key.equals("objetivo3") && !key.equals("objetivo4")) {
+                                %>
+                                    <div class="objetivo-card" id="card_<%= key %>">
+                                        <h3>
+                                            <span class="card-icon"><%= contadorObjetivos %></span> 
+                                            Objetivo Específico <%= contadorObjetivos %>
+                                            <button type="button" class="btn-remove" onclick="eliminarObjetivo('<%= key %>')">
+                                                <i class="fas fa-trash"></i>
+                                                Eliminar
+                                            </button>
+                                        </h3>
+                                        <div class="form-group">
+                                            <textarea name="<%= key %>" id="<%= key %>" 
+                                                     placeholder="Defina un objetivo específico adicional que contribuya al crecimiento y desarrollo de su empresa..."
+                                                     onkeyup="actualizarVistaPrevia()"><%= value %></textarea>
+                                            <% if (!value.isEmpty()) { %>
+                                                <div class="saved-indicator">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    Guardado
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% 
+                                        contadorObjetivos++;
+                                    }
                                 }
-                            }
-                        }
-                    }
-                    %>
-                </div>
-                
-                <!-- Objetivo General -->
-                <div class="objetivo-principal">
-                    <div class="form-group">
-                        <label for="objetivo_general">
-                            <i class="fas fa-bullseye"></i> Objetivo General
-                        </label>
-                        <textarea id="objetivo_general" name="objetivo_general" 
-                                  placeholder="Define el objetivo principal que guiará toda la estrategia de la empresa..."
-                                  style="min-height: 100px;"><%= objetivoGeneral %></textarea>
+                                %>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Objetivos Específicos -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="margin: 0; color: #2c3e50;">
-                        <i class="fas fa-list-ol"></i> Objetivos Específicos
-                    </h3>
-                    <button type="button" id="btnAgregarObjetivo" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
-                        <i class="fas fa-plus"></i> Agregar Objetivo
-                    </button>
-                </div>
-                
-                <div class="objetivos-especificos" id="objetivosContainer">
-                    <div class="objetivo-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3>
-                                <div class="card-icon">
-                                    <i class="fas fa-flag"></i>
+                    <div class="form-grid">
+                        <div class="dashboard-section">
+                            <div class="section-header">
+                                <h2><i class="fas fa-chart-line"></i> Indicadores de Gestión</h2>
+                            </div>
+                            <div class="section-content">
+                                <div class="form-group">
+                                    <label for="indicadores">Indicadores de Medición y KPIs</label>
+                                    <textarea name="indicadores" id="indicadores" 
+                                             placeholder="Ejemplo: 
+• Crecimiento de ventas: % de incremento mensual/anual
+• Satisfacción del cliente: Índice NPS (Net Promoter Score)
+• Eficiencia operativa: Reducción de tiempos de proceso
+• Rentabilidad: ROI (Retorno sobre la inversión)
+• Participación de mercado: % de cuota de mercado
+• Productividad del personal: Ventas por empleado..."
+                                             onkeyup="actualizarVistaPrevia()"><%= indicadores %></textarea>
+                                    <% if (!indicadores.isEmpty()) { %>
+                                        <div class="saved-indicator">
+                                            <i class="fas fa-check-circle"></i>
+                                            Guardado automáticamente
+                                        </div>
+                                    <% } %>
                                 </div>
-                                Objetivo Específico 1
-                            </h3>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <input type="text" id="objetivo1" name="objetivo1" 
-                                   placeholder="Ej: Incrementar las ventas en un 25%"
-                                   value="<%= objetivo1 %>"
-                                   onkeyup="actualizarPreview()">
-                        </div>
-                    </div>
 
-                    <div class="objetivo-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3>
-                                <div class="card-icon">
-                                    <i class="fas fa-flag"></i>
+                        <div class="dashboard-section">
+                            <div class="section-header">
+                                <h2><i class="fas fa-bullseye"></i> Metas y Cronograma</h2>
+                            </div>
+                            <div class="section-content">
+                                <div class="form-group">
+                                    <label for="metas">Metas Específicas y Plazos de Ejecución</label>
+                                    <textarea name="metas" id="metas" 
+                                             placeholder="Ejemplo:
+• Corto plazo (3-6 meses): Implementar sistema CRM y capacitar al equipo de ventas
+• Mediano plazo (6-12 meses): Lanzar campaña de marketing digital y abrir 2 nuevos puntos de venta
+• Largo plazo (1-3 años): Expandir operaciones a 3 ciudades adicionales y diversificar línea de productos
+• Revisiones trimestrales: Evaluación de KPIs y ajuste de estrategias según resultados..."
+                                             onkeyup="actualizarVistaPrevia()"><%= metas %></textarea>
+                                    <% if (!metas.isEmpty()) { %>
+                                        <div class="saved-indicator">
+                                            <i class="fas fa-check-circle"></i>
+                                            Guardado automáticamente
+                                        </div>
+                                    <% } %>
                                 </div>
-                                Objetivo Específico 2
-                            </h3>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="objetivo2" name="objetivo2" 
-                                   placeholder="Ej: Mejorar la satisfacción del cliente al 90%"
-                                   value="<%= objetivo2 %>"
-                                   onkeyup="actualizarPreview()">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="objetivo-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3>
-                                <div class="card-icon">
-                                    <i class="fas fa-flag"></i>
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-eye"></i> Vista Previa de Objetivos</h2>
+                        </div>
+                        <div class="section-content">
+                            <div class="preview-card" id="vistaPrevia">
+                                <h4>Objetivos Estratégicos de su Empresa</h4>
+                                <div id="previewContent">
+                                    <!-- El contenido se actualizará dinámicamente -->
                                 </div>
-                                Objetivo Específico 3
-                            </h3>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="objetivo3" name="objetivo3" 
-                                   placeholder="Ej: Reducir costos operacionales en 15%"
-                                   value="<%= objetivo3 %>"
-                                   onkeyup="actualizarPreview()">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="objetivo-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3>
-                                <div class="card-icon">
-                                    <i class="fas fa-flag"></i>
-                                </div>
-                                Objetivo Específico 4
-                            </h3>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="objetivo4" name="objetivo4" 
-                                   placeholder="Ej: Expandir a 3 nuevos mercados"
-                                   value="<%= objetivo4 %>"
-                                   onkeyup="actualizarPreview()">
-                        </div>
+                    <div class="save-button-container">
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i>
+                            Guardar Objetivos Estratégicos
+                        </button>
                     </div>
-                </div>
+                </form>
 
-                <!-- Indicadores y Metas -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                    <div style="background: #fff3e0; padding: 20px; border-radius: 8px; border-left: 5px solid #ff9800;">
-                        <div class="form-group">
-                            <label for="indicadores">
-                                <i class="fas fa-chart-bar"></i> Indicadores de Medición
-                            </label>
-                            <textarea id="indicadores" name="indicadores" 
-                                      placeholder="Define los KPIs y métricas para medir el progreso..."><%= indicadores %></textarea>
-                        </div>
-                    </div>
-
-                    <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; border-left: 5px solid #4caf50;">
-                        <div class="form-group">
-                            <label for="metas">
-                                <i class="fas fa-calendar-alt"></i> Metas y Plazos
-                            </label>
-                            <textarea id="metas" name="metas" 
-                                      placeholder="Establece las metas específicas y los plazos para cada objetivo..."><%= metas %></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="text-align: center; margin-top: 30px;">
-                    <button type="submit" class="btn btn-primary" style="padding: 15px 40px; font-size: 16px;">
-                        <i class="fas fa-save"></i> Guardar Objetivos Estratégicos
-                    </button>
-                </div>
-            </form>
-
-            <!-- Vista Previa -->
-            <div class="preview-section">
-                <h3><i class="fas fa-eye"></i> Vista Previa de los Objetivos</h3>
-                <div id="previewContainer">
-                    <!-- Se llenará dinámicamente -->
-                </div>
+                <% } %>
             </div>
-
-            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                <p style="color: #2d5a3d; margin: 0;">
-                    <i class="fas fa-info-circle"></i> 
-                    <strong>Modo Colaborativo:</strong> Los objetivos se guardan automáticamente y son visibles 
-                    para todos los miembros del grupo <strong><%= grupoActual %></strong>.
-                </p>
-            </div>
-
-            <% } %>
         </div>
     </div>
 
     <script>
-        let contadorObjetivos = 4; // Los primeros 4 objetivos ya existen, los nuevos empiezan desde 5
+        <%
+            int contador = 5;
+            for (String key : todosLosObjetivos.keySet()) {
+                if (key.startsWith("objetivo") && !key.equals("objetivo_general") && 
+                    !key.equals("objetivo1") && !key.equals("objetivo2") && 
+                    !key.equals("objetivo3") && !key.equals("objetivo4")) {
+                    contador++;
+                }
+            }
+        %>
+        let contadorObjetivos = <%= contador %>;
 
-        function actualizarPreview() {
-            const previewContainer = document.getElementById('previewContainer');
-            previewContainer.innerHTML = '';
+        function agregarObjetivo() {
+            const container = document.getElementById('objetivosContainer');
+            const nuevoObjetivo = document.createElement('div');
+            nuevoObjetivo.className = 'objetivo-card adding';
+            nuevoObjetivo.id = 'card_objetivo' + contadorObjetivos;
+            
+            nuevoObjetivo.innerHTML = `
+                <h3>
+                    <span class="card-icon">${contadorObjetivos}</span> 
+                    Objetivo Específico ${contadorObjetivos}
+                    <button type="button" class="btn-remove" onclick="eliminarObjetivo('objetivo${contadorObjetivos}')">
+                        <i class="fas fa-trash"></i>
+                        Eliminar
+                    </button>
+                </h3>
+                <div class="form-group">
+                    <textarea name="objetivo${contadorObjetivos}" id="objetivo${contadorObjetivos}" 
+                             placeholder="Defina un nuevo objetivo específico que contribuya al crecimiento de su empresa..."
+                             onkeyup="actualizarVistaPrevia(); sincronizarCampo('objetivo${contadorObjetivos}')"></textarea>
+                </div>
+            `;
+            
+            container.appendChild(nuevoObjetivo);
+            
+            contadorObjetivos++;
+            actualizarVistaPrevia();
+        }
+
+        function eliminarObjetivo(objetivoId) {
+            const card = document.getElementById('card_' + objetivoId);
+            const hiddenField = document.getElementById('hidden_' + objetivoId);
+            
+            if (card) {
+                card.classList.add('removing');
+                setTimeout(() => {
+                    card.remove();
+                    if (hiddenField) {
+                        hiddenField.remove();
+                    }
+                    actualizarVistaPrevia();
+                }, 300);
+            }
+        }
+
+        function sincronizarTodosLosCampos() {
+            console.log('=== SINCRONIZANDO CAMPOS ===');
+            
+            // Limpiar campos hidden existentes
+            const hiddenFieldsDiv = document.getElementById('hiddenFields');
+            hiddenFieldsDiv.innerHTML = '';
+            
+            // Crear campos hidden para TODOS los objetivos específicos que existen en el DOM
+            const textareas = document.querySelectorAll('textarea[name^="objetivo"]');
+            console.log('Total textareas encontrados:', textareas.length);
+            
+            textareas.forEach(textarea => {
+                const nombre = textarea.name;
+                const valor = textarea.value;
+                
+                console.log(`Campo: ${nombre}, Valor: "${valor.substring(0, 30)}..."`);
+                
+                // Crear hidden para todos los objetivos específicos (no el general) aunque estén vacíos
+                if (nombre !== 'objetivo_general') {
+                    const hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = nombre;
+                    hiddenField.value = valor;
+                    hiddenField.id = 'hidden_' + nombre;
+                    hiddenFieldsDiv.appendChild(hiddenField);
+                    console.log(`✓ Hidden creado para: ${nombre}`);
+                }
+            });
+            
+            console.log('=== FIN SINCRONIZACIÓN ===');
+            return true; // Permitir envío del formulario
+        }
+
+        function actualizarVistaPrevia() {
+            const previewContent = document.getElementById('previewContent');
+            let html = '';
             
             // Objetivo General
             const objetivoGeneral = document.getElementById('objetivo_general').value;
             if (objetivoGeneral.trim()) {
-                const generalDiv = document.createElement('div');
-                generalDiv.className = 'objetivo-preview';
-                generalDiv.style.borderLeftColor = '#3498db';
-                generalDiv.innerHTML = `
-                    <h4><i class="fas fa-bullseye" style="color: #3498db;"></i> Objetivo General</h4>
-                    <p style="font-size: 14px; line-height: 1.6; color: #555;">${objetivoGeneral}</p>
+                html += `
+                    <div class="preview-element">
+                        <h5><i class="fas fa-target"></i> Objetivo General</h5>
+                        <p>${objetivoGeneral}</p>
+                    </div>
                 `;
-                previewContainer.appendChild(generalDiv);
             }
             
-            // Objetivos Específicos (dinámicos)
-            const objetivosInputs = document.querySelectorAll('input[name^="objetivo"]');
-            objetivosInputs.forEach((input, index) => {
-                if (input.value.trim()) {
-                    const objetivoDiv = document.createElement('div');
-                    objetivoDiv.className = 'objetivo-preview';
-                    objetivoDiv.style.borderLeftColor = '#3498db';
-                    const numeroObjetivo = input.name.replace('objetivo', '') || (index + 1);
-                    objetivoDiv.innerHTML = `
-                        <h4><i class="fas fa-flag" style="color: #3498db;"></i> Objetivo Específico ${numeroObjetivo}</h4>
-                        <p style="font-size: 14px; line-height: 1.6; color: #555;">${input.value}</p>
-                    `;
-                    previewContainer.appendChild(objetivoDiv);
+            // Objetivos Específicos
+            const objetivos = [];
+            for (let i = 1; i <= 4; i++) {
+                const objetivo = document.getElementById('objetivo' + i);
+                if (objetivo && objetivo.value.trim()) {
+                    objetivos.push({
+                        numero: i,
+                        texto: objetivo.value
+                    });
+                }
+            }
+            
+            // Objetivos adicionales
+            const textareas = document.querySelectorAll('textarea[name^="objetivo"]');
+            textareas.forEach(textarea => {
+                if (textarea.name.startsWith('objetivo') && 
+                    textarea.name !== 'objetivo_general' &&
+                    !textarea.name.match(/^objetivo[1-4]$/)) {
+                    if (textarea.value.trim()) {
+                        const numero = textarea.name.replace('objetivo', '');
+                        objetivos.push({
+                            numero: numero,
+                            texto: textarea.value
+                        });
+                    }
                 }
             });
+            
+            if (objetivos.length > 0) {
+                html += `
+                    <div class="preview-element">
+                        <h5><i class="fas fa-list"></i> Objetivos Específicos</h5>
+                `;
+                objetivos.forEach((obj, index) => {
+                    html += `<p><strong>${index + 1}.</strong> ${obj.texto}</p>`;
+                });
+                html += `</div>`;
+            }
             
             // Indicadores
             const indicadores = document.getElementById('indicadores').value;
             if (indicadores.trim()) {
-                const indicadoresDiv = document.createElement('div');
-                indicadoresDiv.className = 'objetivo-preview';
-                indicadoresDiv.style.borderLeftColor = '#ff9800';
-                indicadoresDiv.innerHTML = `
-                    <h4><i class="fas fa-chart-bar" style="color: #ff9800;"></i> Indicadores de Medición</h4>
-                    <p style="font-size: 14px; line-height: 1.6; color: #555;">${indicadores}</p>
+                html += `
+                    <div class="preview-element">
+                        <h5><i class="fas fa-chart-line"></i> Indicadores de Gestión</h5>
+                        <p>${indicadores}</p>
+                    </div>
                 `;
-                previewContainer.appendChild(indicadoresDiv);
             }
             
             // Metas
             const metas = document.getElementById('metas').value;
             if (metas.trim()) {
-                const metasDiv = document.createElement('div');
-                metasDiv.className = 'objetivo-preview';
-                metasDiv.style.borderLeftColor = '#4caf50';
-                metasDiv.innerHTML = `
-                    <h4><i class="fas fa-calendar-alt" style="color: #4caf50;"></i> Metas y Plazos</h4>
-                    <p style="font-size: 14px; line-height: 1.6; color: #555;">${metas}</p>
+                html += `
+                    <div class="preview-element">
+                        <h5><i class="fas fa-bullseye"></i> Metas y Plazos</h5>
+                        <p>${metas}</p>
+                    </div>
                 `;
-                previewContainer.appendChild(metasDiv);
             }
             
-            if (previewContainer.children.length === 0) {
-                previewContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">No hay objetivos definidos</p>';
+            if (html === '') {
+                html = '<p style="text-align: center; color: var(--text-secondary); font-style: italic;">Complete los campos para ver la vista previa de los objetivos estratégicos de su empresa...</p>';
+            }
+            
+            previewContent.innerHTML = html;
+        }
+
+        function logout() {
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                window.location.href = 'logout.jsp';
             }
         }
 
-        function agregarObjetivo() {
-            // Asegurar que contadorObjetivos sea al menos 5
-            if (contadorObjetivos < 5) {
-                contadorObjetivos = 5;
-            } else {
-                contadorObjetivos++;
-            }
-            
-            const container = document.getElementById('objetivosContainer');
-            
-            const nuevoObjetivo = document.createElement('div');
-            nuevoObjetivo.className = 'objetivo-card adding';
-            nuevoObjetivo.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>
-                        <div class="card-icon">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        Objetivo Específico ${contadorObjetivos}
-                    </h3>
-                    <button type="button" class="btn-remove" onclick="eliminarObjetivo(this)">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                <div class="form-group">
-                    <input type="text" name="objetivo${contadorObjetivos}" 
-                           placeholder="Define un nuevo objetivo específico..."
-                           onkeyup="actualizarPreview(); actualizarCampoHidden(this)">
-                </div>
-            `;
-            
-            container.appendChild(nuevoObjetivo);
-            
-            // Crear campo hidden correspondiente
-            crearCampoHidden(`objetivo${contadorObjetivos}`, '');
-            
-            // Enfocar el nuevo input
-            setTimeout(() => {
-                const nuevoInput = nuevoObjetivo.querySelector('input');
-                nuevoInput.focus();
-            }, 100);
-        }
-
-        function eliminarObjetivo(btn) {
-            const objetivoCard = btn.closest('.objetivo-card');
-            const input = objetivoCard.querySelector('input');
-            const nombreCampo = input.name;
-            
-            objetivoCard.classList.add('removing');
-            
-            setTimeout(() => {
-                objetivoCard.remove();
-                eliminarCampoHidden(nombreCampo);
-                actualizarPreview();
-                renumerarObjetivos();
-            }, 300);
-        }
-
-        function renumerarObjetivos() {
-            const objetivos = document.querySelectorAll('#objetivosContainer .objetivo-card');
-            let contadorDinamicos = 5; // Empezar desde objetivo5
-            
-            objetivos.forEach((objetivo, index) => {
-                const titulo = objetivo.querySelector('h3');
-                const input = objetivo.querySelector('input');
-                
-                // Solo renumerar objetivos dinámicos (no los primeros 4)
-                if (input && !input.name.match(/^objetivo[1-4]$/)) {
-                    const numeroVisual = contadorDinamicos;
-                    
-                    titulo.innerHTML = `
-                        <div class="card-icon">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        Objetivo Específico ${numeroVisual}
-                    `;
-                    
-                    // Actualizar el nombre del campo
-                    const nombreAnterior = input.name;
-                    const nombreNuevo = `objetivo${numeroVisual}`;
-                    
-                    input.name = nombreNuevo;
-                    
-                    // Actualizar campo hidden correspondiente
-                    eliminarCampoHidden(nombreAnterior);
-                    crearCampoHidden(nombreNuevo, input.value);
-                    
-                    contadorDinamicos++;
-                } else {
-                    // Mantener numeración original para los primeros 4
-                    const numeroOriginal = index + 1;
-                    titulo.innerHTML = `
-                        <div class="card-icon">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        Objetivo Específico ${numeroOriginal}
-                    `;
-                }
-            });
-            
-            // Actualizar contador global
-            contadorObjetivos = contadorDinamicos - 1;
-        }
-
-        // Agregar botones de eliminar a los objetivos existentes (excepto los primeros 2)
-        function inicializarBotonesEliminar() {
-            const objetivos = document.querySelectorAll('#objetivosContainer .objetivo-card');
-            objetivos.forEach((objetivo, index) => {
-                if (index >= 2) { // Solo a partir del tercer objetivo
-                    const header = objetivo.querySelector('div[style*="display: flex"]');
-                    if (header && !header.querySelector('.btn-remove')) {
-                        const btnEliminar = document.createElement('button');
-                        btnEliminar.type = 'button';
-                        btnEliminar.className = 'btn-remove';
-                        btnEliminar.innerHTML = '<i class="fas fa-trash"></i>';
-                        btnEliminar.onclick = function() { eliminarObjetivo(this); };
-                        header.appendChild(btnEliminar);
-                    }
-                }
-            });
-        }
-
-        // Event Listeners
+        // Actualizar vista previa al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
-            // Botón agregar objetivo
-            document.getElementById('btnAgregarObjetivo').addEventListener('click', agregarObjetivo);
+            actualizarVistaPrevia();
             
-            // Cargar objetivos adicionales del servidor
-            cargarObjetivosAdicionales();
-            
-            // Inicializar botones de eliminar
-            inicializarBotonesEliminar();
-            
-            // Listeners para inputs existentes
-            const inputs = document.querySelectorAll('input, textarea');
-            inputs.forEach(input => {
-                input.addEventListener('input', actualizarPreview);
-            });
-            
-            // Vista previa inicial
-            actualizarPreview();
-        });
-
-        function cargarObjetivosAdicionales() {
-            // Función simplificada - cargar desde campos hidden
-            const hiddenFields = document.getElementById('hiddenFields');
-            const hiddenInputs = hiddenFields.querySelectorAll('input[type="hidden"]');
-            
-            hiddenInputs.forEach(input => {
-                if (input.name.startsWith('objetivo') && input.name !== 'objetivo1' && 
-                    input.name !== 'objetivo2' && input.name !== 'objetivo3' && input.name !== 'objetivo4') {
-                    const numero = parseInt(input.name.replace('objetivo', ''));
-                    if (input.value && input.value.trim() !== '') {
-                        agregarObjetivoConDatos(input.name, input.value, numero);
-                    }
-                }
-            });
-        }
-
-        function agregarObjetivoConDatos(name, valor, numero) {
-            const container = document.getElementById('objetivosContainer');
-            
-            // Actualizar contador
-            contadorObjetivos = Math.max(contadorObjetivos, numero);
-            
-            const nuevoObjetivo = document.createElement('div');
-            nuevoObjetivo.className = 'objetivo-card';
-            nuevoObjetivo.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>
-                        <div class="card-icon">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        Objetivo Específico ${numero}
-                    </h3>
-                    <button type="button" class="btn-remove" onclick="eliminarObjetivo(this)">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                <div class="form-group">
-                    <input type="text" name="${name}" value="${valor}"
-                           placeholder="Define un objetivo específico..."
-                           onkeyup="actualizarPreview(); actualizarCampoHidden(this)">
-                </div>
-            `;
-            
-            container.appendChild(nuevoObjetivo);
-            
-            // Crear campo hidden correspondiente
-            crearCampoHidden(name, valor);
-        }
-
-        // Funciones para manejar campos hidden
-        function sincronizarTodosLosCampos() {
-            console.log('Sincronizando todos los campos antes de enviar...');
-            
-            // Obtener todos los inputs de objetivos dinámicos
-            const objetivosInputs = document.querySelectorAll('#objetivosContainer input[name^="objetivo"]');
-            
-            objetivosInputs.forEach(input => {
-                const nombre = input.name;
-                const valor = input.value;
-                
-                // Solo sincronizar objetivos dinámicos (no los 4 predeterminados)
-                if (nombre !== 'objetivo1' && nombre !== 'objetivo2' && 
-                    nombre !== 'objetivo3' && nombre !== 'objetivo4') {
+            // Auto-refresh en modo colaborativo cada 30 segundos
+            <% if (modoColaborativo) { %>
+                setInterval(function() {
+                    // Solo refrescar si no hay cambios sin guardar
+                    const forms = document.querySelectorAll('input, textarea');
+                    let hasUnsavedChanges = false;
                     
-                    console.log(`Sincronizando ${nombre} = ${valor}`);
-                    crearCampoHidden(nombre, valor);
-                }
-            });
-            
-            // Mostrar en consola todos los campos hidden para debug
-            const hiddenFields = document.getElementById('hiddenFields');
-            const hiddenInputs = hiddenFields.querySelectorAll('input[type="hidden"]');
-            console.log('Campos hidden que se enviarán:');
-            hiddenInputs.forEach(hidden => {
-                console.log(`${hidden.name} = ${hidden.value}`);
-            });
-            
-            return true; // Permitir el envío del formulario
-        }
-
-        function crearCampoHidden(nombre, valor) {
-            const hiddenFields = document.getElementById('hiddenFields');
-            
-            // Verificar si ya existe
-            let existingField = hiddenFields.querySelector(`input[name="${nombre}"]`);
-            if (!existingField) {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = nombre;
-                hiddenInput.value = valor;
-                hiddenFields.appendChild(hiddenInput);
-            } else {
-                existingField.value = valor;
-            }
-        }
-
-        function eliminarCampoHidden(nombre) {
-            const hiddenFields = document.getElementById('hiddenFields');
-            const campo = hiddenFields.querySelector(`input[name="${nombre}"]`);
-            if (campo) {
-                campo.remove();
-            }
-        }
-
-        function actualizarCampoHidden(input) {
-            const nombre = input.name;
-            const valor = input.value;
-            crearCampoHidden(nombre, valor);
-        }
-
-        // Auto-refresh cada 15 segundos
-        setInterval(function() {
-            const inputs = document.querySelectorAll('input, textarea');
-            let hayChanged = false;
-            inputs.forEach(input => {
-                if (input.dataset.changed === 'true') {
-                    hayChanged = true;
-                }
-            });
-            
-            if (!hayChanged) {
-                location.reload();
-            }
-        }, 15000);
-
-        // Marcar como cambiado
-        document.querySelectorAll('input, textarea').forEach(element => {
-            element.addEventListener('input', function() {
-                this.dataset.changed = 'true';
-            });
+                    forms.forEach(form => {
+                        if (form.defaultValue !== form.value) {
+                            hasUnsavedChanges = true;
+                        }
+                    });
+                    
+                    if (!hasUnsavedChanges) {
+                        location.reload();
+                    }
+                }, 30000);
+            <% } %>
         });
     </script>
 </body>

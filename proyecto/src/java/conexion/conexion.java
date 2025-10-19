@@ -3,62 +3,58 @@ package conexion;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+// Removido JOptionPane para compatibilidad web
 
+/**
+ * Clase para manejar la conexión a la base de datos MySQL
+ * Compatible con HeidiSQL y otros clientes MySQL
+ * 
+ * @author Mi Equipo
+ */
 public class conexion {
-
+    
+    // Parámetros de conexión - Ajusta estos valores según tu configuración
+    private static final String SERVIDOR = "localhost"; // o la IP de tu servidor
+    private static final String PUERTO = "3306"; // Puerto por defecto de MySQL
+    private static final String BASE_DATOS = "sistema_peti";
+    private static final String USUARIO = "root"; // Cambia por tu usuario
+    private static final String PASSWORD = ""; // Cambia por tu contraseña
+    
+    // URL completa de conexión
+    private static final String URL = "jdbc:mysql://" + SERVIDOR + ":" + PUERTO + "/" + BASE_DATOS 
+            + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+    
     private static Connection conexion = null;
-
+    
+    /**
+     * Método para establecer la conexión a la base de datos
+     * @return Connection - objeto de conexión o null si falla
+     */
     public static Connection getConexion() {
-        // --- INICIO DE LA MODIFICACIÓN ---
-
-        // 1. Definir los valores por defecto para el entorno local (localhost)
-        // CAMBIA ESTOS VALORES SEGÚN TU CONFIGURACIÓN LOCAL
-        String localHost = "localhost";
-        String localPort = "3306";
-        String localDbName = "sistema_peti"; // O el nombre de tu BD local
-        String localUser = "root";           // Tu usuario local, usualmente "root"
-        String localPassword = "";  // La contraseña de tu MySQL local
-
-        // 2. Intentar leer las variables de entorno de Azure
-        String dbHost = System.getenv("DB_HOST");
-        String dbPort = System.getenv("DB_PORT");
-        String dbName = System.getenv("DB_NAME");
-        String dbUser = System.getenv("DB_USER");
-        String dbPassword = System.getenv("DB_PASSWORD");
-
-        // 3. Decidir qué configuración usar (Lógica de Fallback)
-        // Si la variable de entorno es nula, usa el valor local por defecto.
-        if (dbHost == null) {
-            System.out.println("INFO: No se encontró la variable de entorno DB_HOST. Usando configuración local (localhost).");
-            dbHost = localHost;
-            dbPort = localPort;
-            dbName = localDbName;
-            dbUser = localUser;
-            dbPassword = localPassword;
-        } else {
-            System.out.println("INFO: Variable de entorno DB_HOST encontrada. Usando configuración de Azure.");
-        }
-
-        // --- FIN DE LA MODIFICACIÓN ---
-
-        // Construye la URL de conexión (esto no cambia)
-        String url = "jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName
-                     + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-
         try {
+            // Cargar el driver de MySQL
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conexion = DriverManager.getConnection(url, dbUser, dbPassword);
-            System.out.println("✓ Conexión exitosa a la base de datos: " + dbName);
+            
+            // Establecer la conexión
+            conexion = DriverManager.getConnection(URL, USUARIO, PASSWORD);
+            
+            System.out.println("✓ Conexión exitosa a la base de datos: " + BASE_DATOS);
             return conexion;
-
+            
         } catch (ClassNotFoundException e) {
-            System.err.println("✗ Error: Driver MySQL no encontrado. Asegúrate de tener mysql-connector-java en el classpath.");
+            System.err.println("✗ Error: Driver MySQL no encontrado");
+            System.err.println("Asegúrate de tener mysql-connector-java en el classpath");
             return null;
-
+            
         } catch (SQLException e) {
             System.err.println("✗ Error de conexión a la base de datos:");
+            System.err.println("Código de error: " + e.getErrorCode());
             System.err.println("Mensaje: " + e.getMessage());
-            System.err.println("Verifica que los datos de conexión para '" + dbHost + "' sean correctos.");
+            
+            System.err.println("Verifica:");
+            System.err.println("• Que MySQL esté ejecutándose");
+            System.err.println("• Usuario y contraseña correctos");
+            System.err.println("• Que la base de datos '" + BASE_DATOS + "' exista");
             return null;
         }
     }
@@ -94,18 +90,12 @@ public class conexion {
      * Útil para verificar que todo funciona correctamente
      */
     public static void probarConexion() {
-        // Lee la configuración desde las variables de entorno para poder mostrarlas
-        String dbHost = System.getenv("DB_HOST");
-        String dbPort = System.getenv("DB_PORT");
-        String dbName = System.getenv("DB_NAME");
-        String dbUser = System.getenv("DB_USER");
-
         System.out.println("=== PROBANDO CONEXIÓN A LA BASE DE DATOS ===");
-        System.out.println("Servidor: " + dbHost + ":" + dbPort);
-        System.out.println("Base de datos: " + dbName);
-        System.out.println("Usuario: " + dbUser);
+        System.out.println("Servidor: " + SERVIDOR + ":" + PUERTO);
+        System.out.println("Base de datos: " + BASE_DATOS);
+        System.out.println("Usuario: " + USUARIO);
         System.out.println("==========================================");
-
+        
         Connection conn = getConexion();
         if (conn != null) {
             System.out.println("🎉 ¡Conexión exitosa!");
@@ -115,15 +105,8 @@ public class conexion {
         }
     }
     
-    /**
-     * Método main para pruebas rápidas.
-     * Para que funcione localmente, debes configurar las variables de entorno
-     * en tu IDE (Eclipse, IntelliJ, etc.).
-     */
+    // Método main para pruebas rápidas
     public static void main(String[] args) {
-        // NOTA: Para que esto funcione en tu PC, debes configurar las variables
-        // de entorno (DB_HOST, DB_USER, etc.) en la configuración de ejecución
-        // de tu IDE. En Azure, esto ya está configurado.
         probarConexion();
     }
 }

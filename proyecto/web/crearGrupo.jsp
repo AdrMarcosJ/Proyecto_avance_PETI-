@@ -6,7 +6,6 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.*"%>
-<%@page import="java.security.SecureRandom"%>
 <%@page import="java.sql.*"%>
 <%@page import="conexion.conexion"%>
 <%@page import="entidad.ClsEGrupo"%>
@@ -22,12 +21,7 @@
         return;
     }
     
-    // Verificar que el usuario no tenga ya un grupo
-    String grupoActual = (String) session.getAttribute("grupoActual");
-    if (grupoActual != null) {
-        response.sendRedirect("menuprincipal.jsp?error=ya_tiene_grupo");
-        return;
-    }
+    // REMOVIDO: Verificación de grupo único - ahora permitimos múltiples grupos
     
     // Obtener parámetros del formulario
     String nombreGrupo = request.getParameter("nombreGrupo");
@@ -77,18 +71,10 @@
         int resultado = negocioGrupo.crearGrupo(grupo);
         
         if (resultado > 0) {
-            // Asignar el grupo al usuario en la sesión
-            session.setAttribute("grupoActual", nombreGrupo);
-            session.setAttribute("rolUsuario", "admin");
-            session.setAttribute("codigoGrupo", grupo.getCodigo());
-            session.setAttribute("idGrupo", grupo.getId());
-            
             // Redirigir al menú principal con mensaje de éxito
             response.sendRedirect("menuprincipal.jsp?success=grupo_creado");
         } else if (resultado == -3) {
             response.sendRedirect("menuprincipal.jsp?error=nombre_grupo_existe");
-        } else if (resultado == -2) {
-            response.sendRedirect("menuprincipal.jsp?error=ya_tiene_grupo");
         } else {
             response.sendRedirect("menuprincipal.jsp?error=error_crear_grupo");
         }

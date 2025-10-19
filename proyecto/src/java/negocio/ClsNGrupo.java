@@ -5,7 +5,9 @@ import entidad.ClsEGrupo;
 import entidad.ClsELogin;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Clase de negocio para el manejo de operaciones de grupos
@@ -23,6 +25,8 @@ public class ClsNGrupo {
     public ClsNGrupo() {
         this.conn = conexion.getConexion();
     }
+    
+    // ... existing code ...
     
     /**
      * Crear un nuevo grupo
@@ -90,41 +94,43 @@ public class ClsNGrupo {
             return false;
         }
         
-        // Verificar que el usuario no tenga ya un grupo
-        if (usuarioTieneGrupo(usuarioId)) {
-            System.err.println("✗ El usuario ya pertenece a un grupo");
+        // Obtener información del grupo por código
+        ClsEGrupo grupo = obtenerGrupoPorCodigo(codigoGrupo);
+        if (grupo == null) {
+            System.err.println("✗ Grupo no encontrado con el código: " + codigoGrupo);
+            return false;
+        }
+        
+        // Verificar que el usuario no sea ya miembro de este grupo específico
+        if (usuarioYaPerteneceAGrupo(usuarioId, grupo.getId())) {
+            System.err.println("✗ El usuario ya pertenece a este grupo");
+            return false;
+        }
+        
+        // Verificar que el grupo no esté lleno
+        int miembrosActuales = contarMiembrosGrupo(grupo.getId());
+        if (miembrosActuales >= grupo.getLimiteUsuarios()) {
+            System.err.println("✗ El grupo ha alcanzado su límite máximo de usuarios");
             return false;
         }
         
         try {
-            // Usar el procedimiento almacenado UnirseGrupo
-            String sql = "CALL UnirseGrupo(?, ?)";
+            String sql = "INSERT INTO miembros_grupo (usuario_id, grupo_id, rol) VALUES (?, ?, 'miembro')";
             
-            try (CallableStatement cst = conn.prepareCall(sql)) {
-                cst.setInt(1, usuarioId);
-                cst.setString(2, codigoGrupo.toUpperCase());
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setInt(1, usuarioId);
+                pst.setInt(2, grupo.getId());
                 
-                ResultSet rs = cst.executeQuery();
+                int filasAfectadas = pst.executeUpdate();
                 
-                if (rs.next()) {
-                    String mensaje = rs.getString("mensaje");
-                    System.out.println("✓ " + mensaje);
+                if (filasAfectadas > 0) {
+                    System.out.println("✓ Usuario unido al grupo exitosamente");
                     return true;
                 }
             }
             
         } catch (SQLException e) {
-            String mensaje = e.getMessage();
-            System.err.println("✗ Error al unirse al grupo: " + mensaje);
-            
-            // Manejar errores específicos del procedimiento almacenado
-            if (mensaje.contains("Grupo no encontrado")) {
-                return false; // Código no encontrado
-            } else if (mensaje.contains("Ya es miembro del grupo")) {
-                return false; // Ya es miembro
-            } else if (mensaje.contains("Grupo lleno")) {
-                return false; // Grupo lleno
-            }
+            System.err.println("✗ Error al unirse al grupo: " + e.getMessage());
         }
         
         return false;
@@ -440,6 +446,28 @@ public class ClsNGrupo {
     }
     
     /**
+     * Contar miembros de un grupo específico
+     */
+    private int contarMiembrosGrupo(int grupoId) {
+        String sql = "SELECT COUNT(*) as count FROM miembros_grupo WHERE grupo_id = ?";
+        
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, grupoId);
+            
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("✗ Error al contar miembros del grupo: " + e.getMessage());
+        }
+        
+        return 0;
+    }
+    
+    /**
      * Obtener información de un grupo por su código
      * @param codigo código del grupo
      * @return objeto ClsEGrupo con la información del grupo, null si no existe
@@ -542,5 +570,141 @@ public class ClsNGrupo {
         }
         
         return null;
+    }
+    
+    /**
+     * Obtener todos los grupos a los que pertenece un usuario
+     * @param usuarioId ID del usuario
+     * @return lista de grupos con información completa incluyendo rol y número de miembros
+     */
+    public List<Map<String, Object>> obtenerTodosLosGruposUsuario(int usuarioId) {
+        List<Map<String, Object>> grupos = new ArrayList<>();
+        
+        String sql = "SELECT g.id, g.nombre, g.codigo, g.limite_usuarios, g.admin_id, " +
+                    "g.fecha_creacion, g.activo, mg.rol, " +
+                    "(SELECT COUNT(*) FROM miembros_grupo mg2 WHERE mg2.grupo_id = g.id) as total_miembros " +
+                    "FROM grupos g " +
+                    "INNER JOIN miembros_grupo mg ON g.id = mg.grupo_id " +
+                    "WHERE mg.usuario_id = ? AND g.activo = TRUE " +
+                    "ORDER BY g.fecha_creacion DESC";
+        
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, usuarioId);
+            
+            ResultSet rs = pst.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> grupo = new HashMap<>();
+                grupo.put("id", rs.getInt("id"));
+                grupo.put("nombre", rs.getString("nombre"));
+                grupo.put("codigo", rs.getString("codigo"));
+                grupo.put("limite_usuarios", rs.getInt("limite_usuarios"));
+                grupo.put("admin_id", rs.getInt("admin_id"));
+                grupo.put("fecha_creacion", rs.getTimestamp("fecha_creacion"));
+                grupo.put("activo", rs.getBoolean("activo"));
+                grupo.put("rol", rs.getString("rol"));
+                grupo.put("miembros", rs.getInt("total_miembros"));
+                
+                grupos.add(grupo);
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("✗ Error al obtener todos los grupos del usuario: " + e.getMessage());
+        }
+        
+        return grupos;
+    }
+    
+    /**
+     * Obtener información detallada de un grupo específico con el rol del usuario
+     * @param usuarioId ID del usuario
+     * @param grupoId ID del grupo
+     * @return Map con información del grupo y rol del usuario, null si no pertenece al grupo
+     */
+    public Map<String, Object> obtenerInfoGrupoConRol(int usuarioId, int grupoId) {
+        String sql = "SELECT g.id, g.nombre, g.codigo, g.limite_usuarios, g.admin_id, " +
+                    "g.fecha_creacion, g.activo, mg.rol, " +
+                    "(SELECT COUNT(*) FROM miembros_grupo mg2 WHERE mg2.grupo_id = g.id) as total_miembros " +
+                    "FROM grupos g " +
+                    "INNER JOIN miembros_grupo mg ON g.id = mg.grupo_id " +
+                    "WHERE mg.usuario_id = ? AND g.id = ? AND g.activo = TRUE";
+        
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, usuarioId);
+            pst.setInt(2, grupoId);
+            
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                Map<String, Object> grupo = new HashMap<>();
+                grupo.put("id", rs.getInt("id"));
+                grupo.put("nombre", rs.getString("nombre"));
+                grupo.put("codigo", rs.getString("codigo"));
+                grupo.put("limite_usuarios", rs.getInt("limite_usuarios"));
+                grupo.put("admin_id", rs.getInt("admin_id"));
+                grupo.put("fecha_creacion", rs.getTimestamp("fecha_creacion"));
+                grupo.put("activo", rs.getBoolean("activo"));
+                grupo.put("rol", rs.getString("rol"));
+                grupo.put("miembros", rs.getInt("total_miembros"));
+                
+                return grupo;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("✗ Error al obtener información del grupo con rol: " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Verificar si un usuario ya pertenece a un grupo específico
+     * @param usuarioId ID del usuario
+     * @param grupoId ID del grupo
+     * @return true si ya pertenece al grupo, false en caso contrario
+     */
+    public boolean usuarioYaPerteneceAGrupo(int usuarioId, int grupoId) {
+        String sql = "SELECT COUNT(*) as count FROM miembros_grupo mg " +
+                    "WHERE mg.usuario_id = ? AND mg.grupo_id = ?";
+        
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, usuarioId);
+            pst.setInt(2, grupoId);
+            
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("count") > 0;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("✗ Error al verificar si usuario pertenece al grupo: " + e.getMessage());
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Contar cuántos grupos tiene un usuario
+     */
+    public int contarGruposUsuario(int usuarioId) {
+        String sql = "SELECT COUNT(*) as count FROM miembros_grupo mg " +
+                    "INNER JOIN grupos g ON mg.grupo_id = g.id " +
+                    "WHERE mg.usuario_id = ? AND g.activo = TRUE";
+        
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, usuarioId);
+            
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("✗ Error al contar grupos del usuario: " + e.getMessage());
+        }
+        
+        return 0;
     }
 }

@@ -21,15 +21,10 @@
         return;
     }
     
-    // Verificar que el usuario no tenga ya un grupo
-    String grupoActual = (String) session.getAttribute("grupoActual");
-    if (grupoActual != null) {
-        response.sendRedirect("menuprincipal.jsp?error=ya_tiene_grupo");
-        return;
-    }
+    // REMOVIDO: Verificación de grupo único - ahora permitimos múltiples grupos
     
     // Obtener el código del formulario
-    String codigoUnirse = request.getParameter("codigoUnirse");
+    String codigoUnirse = request.getParameter("codigoGrupo");
     
     // Validar parámetro
     if (codigoUnirse == null || codigoUnirse.trim().isEmpty()) {
@@ -56,7 +51,7 @@
         ClsEGrupo grupo = negocioGrupo.obtenerGrupoPorCodigo(codigoUnirse);
         
         if (grupo == null) {
-            response.sendRedirect("unirseGrupo.jsp?error=codigo_invalido");
+            response.sendRedirect("menuprincipal.jsp?error=codigo_no_encontrado");
             return;
         }
         
@@ -64,25 +59,18 @@
         boolean resultado = negocioGrupo.unirseGrupo(idUsuario, codigoUnirse);
         
         if (resultado) {
-            // Información del grupo ya obtenida anteriormente
-            
-            if (grupo != null) {
-                session.setAttribute("grupoActual", grupo.getNombre());
-                session.setAttribute("rolUsuario", "miembro");
-                session.setAttribute("codigoGrupo", grupo.getCodigo());
-                session.setAttribute("idGrupo", grupo.getId());
-                
-                // Redirigir al menú principal con mensaje de éxito
-                response.sendRedirect("menuprincipal.jsp?success=unido_grupo");
-            } else {
-                response.sendRedirect("unirseGrupo.jsp?error=error_grupo");
-            }
+            // Redirigir al menú principal con mensaje de éxito
+            response.sendRedirect("menuprincipal.jsp?success=unido_grupo&grupo=" + java.net.URLEncoder.encode(grupo.getNombre(), "UTF-8"));
         } else {
-            response.sendRedirect("unirseGrupo.jsp?error=no_se_pudo_unir");
+            // Verificar el motivo del fallo
+            if (negocioGrupo.usuarioYaPerteneceAGrupo(idUsuario, grupo.getId())) {
+                response.sendRedirect("menuprincipal.jsp?error=ya_es_miembro");
+            } else {
+                response.sendRedirect("menuprincipal.jsp?error=grupo_lleno");
+            }
         }
         
     } catch (Exception e) {
-        // Error al unirse al grupo
         e.printStackTrace();
         response.sendRedirect("menuprincipal.jsp?error=error_base_datos");
     }

@@ -331,13 +331,13 @@ public class ClsNLogin {
     }
 
     /**
-     * Obtener el ID de un usuario por su username
+     * Obtener ID de usuario por username
      * @param username nombre de usuario
-     * @return ID del usuario, 0 si no existe
+     * @return ID del usuario, null si no existe
      */
-    public int obtenerIdUsuario(String username) {
+    public Integer obtenerIdPorUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
-            return 0;
+            return null;
         }
         
         String sql = "SELECT id FROM usuarios WHERE username = ? AND activo = TRUE";
@@ -352,9 +352,19 @@ public class ClsNLogin {
             }
             
         } catch (SQLException e) {
-            System.err.println("✗ Error al obtener ID de usuario: " + e.getMessage());
+            System.err.println("Error al obtener ID por username: " + e.getMessage());
         }
         
-        return 0;
+        return null;
+    }
+    
+    /**
+     * Método para obtener el ID de un usuario por su username
+     * @param username nombre de usuario
+     * @return ID del usuario como int primitivo, -1 si no se encuentra
+     */
+    public int obtenerIdUsuario(String username) {
+        Integer id = obtenerIdPorUsername(username);
+        return (id != null) ? id : -1;
     }
 }
