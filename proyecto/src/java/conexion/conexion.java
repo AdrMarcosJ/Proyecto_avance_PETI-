@@ -14,11 +14,11 @@ import java.sql.SQLException;
 public class conexion {
     
     // Parámetros de conexión - Ajusta estos valores según tu configuración
-    private static final String SERVIDOR = "localhost"; // o la IP de tu servidor
+    private static final String SERVIDOR = "161.132.4.240"; // o la IP de tu servidor
     private static final String PUERTO = "3306"; // Puerto por defecto de MySQL
     private static final String BASE_DATOS = "sistema_peti";
-    private static final String USUARIO = "root"; // Cambia por tu usuario
-    private static final String PASSWORD = ""; // Cambia por tu contraseña
+    private static final String USUARIO = "admin"; // Cambia por tu usuario
+    private static final String PASSWORD = "Upt2025"; // Cambia por tu contraseña
     
     // URL completa de conexión
     private static final String URL = "jdbc:mysql://" + SERVIDOR + ":" + PUERTO + "/" + BASE_DATOS 

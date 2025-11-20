@@ -43,7 +43,10 @@
     String datosCompetidores = "";
     String datosPRM = "";
     String datosDemanda = "";
-    String datosFoda = "";
+    String fortaleza3Guardada = "";
+    String fortaleza4Guardada = "";
+    String debilidad3Guardada = "";
+    String debilidad4Guardada = "";
     String mensaje = "";
     String tipoMensaje = "";
     
@@ -63,7 +66,10 @@
                 String competidoresData = request.getParameter("competidores_data");
                 String prmData = request.getParameter("prm_data");
                 String demandaData = request.getParameter("demanda_data");
-                String fodaData = request.getParameter("foda_data");
+                String fortaleza3 = request.getParameter("fortaleza3");
+                String fortaleza4 = request.getParameter("fortaleza4");
+                String debilidad3 = request.getParameter("debilidad3");
+                String debilidad4 = request.getParameter("debilidad4");
                 
                 // Debug logs
                 out.println("<!-- DEBUG: TCM Data recibido = " + (tcmData != null ? tcmData.substring(0, Math.min(100, tcmData.length())) + "..." : "null") + " -->");
@@ -122,9 +128,22 @@
                     out.println("<!-- DEBUG: Demanda NO guardada (null o vacía) -->");
                 }
                 
-                if (fodaData != null && !fodaData.trim().isEmpty()) {
-                    ClsEPeti datoFoda = new ClsEPeti(grupoId, "bcg", "foda", fodaData.trim(), usuarioId);
-                    fodaGuardado = negocioPeti.guardarDato(datoFoda);
+                // Guardar datos FODA individualmente
+                if (fortaleza3 != null && !fortaleza3.trim().isEmpty()) {
+                    ClsEPeti datoF3 = new ClsEPeti(grupoId, "bcg", "fortaleza3", fortaleza3.trim(), usuarioId);
+                    fodaGuardado = fodaGuardado && negocioPeti.guardarDato(datoF3);
+                }
+                if (fortaleza4 != null && !fortaleza4.trim().isEmpty()) {
+                    ClsEPeti datoF4 = new ClsEPeti(grupoId, "bcg", "fortaleza4", fortaleza4.trim(), usuarioId);
+                    fodaGuardado = fodaGuardado && negocioPeti.guardarDato(datoF4);
+                }
+                if (debilidad3 != null && !debilidad3.trim().isEmpty()) {
+                    ClsEPeti datoD3 = new ClsEPeti(grupoId, "bcg", "debilidad3", debilidad3.trim(), usuarioId);
+                    fodaGuardado = fodaGuardado && negocioPeti.guardarDato(datoD3);
+                }
+                if (debilidad4 != null && !debilidad4.trim().isEmpty()) {
+                    ClsEPeti datoD4 = new ClsEPeti(grupoId, "bcg", "debilidad4", debilidad4.trim(), usuarioId);
+                    fodaGuardado = fodaGuardado && negocioPeti.guardarDato(datoD4);
                 }
                 
                 exito = nombresGuardados && periodosGuardados && ventasGuardadas && tcmGuardado && competidoresGuardados && prmGuardado && demandaGuardada && fodaGuardado;
@@ -171,8 +190,19 @@
             if (datosBCG.containsKey("demanda")) {
                 datosDemanda = datosBCG.get("demanda");
             }
-            if (datosBCG.containsKey("foda")) {
-                datosFoda = datosBCG.get("foda");
+            
+            // Cargar campos FODA individuales
+            if (datosBCG.containsKey("fortaleza3")) {
+                fortaleza3Guardada = datosBCG.get("fortaleza3");
+            }
+            if (datosBCG.containsKey("fortaleza4")) {
+                fortaleza4Guardada = datosBCG.get("fortaleza4");
+            }
+            if (datosBCG.containsKey("debilidad3")) {
+                debilidad3Guardada = datosBCG.get("debilidad3");
+            }
+            if (datosBCG.containsKey("debilidad4")) {
+                debilidad4Guardada = datosBCG.get("debilidad4");
             }
         } catch (Exception e) {
             //System.err.println("Error al cargar datos BCG: " + e.getMessage());
@@ -1380,45 +1410,57 @@
                 </div>
             </div>
             <nav class="dashboard-nav">
-                <div class="nav-section">
-                    <div class="nav-section-title">Principal</div>
-                    <ul>
-                        <li><a href="dashboard.jsp"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                    </ul>
-                </div>
-                <div class="nav-section">
-                    <div class="nav-section-title">Planificacion Estrategica</div>
-                    <ul>
-                        <li><a href="empresa_colaborativo.jsp"><i class="fas fa-building"></i> Informacion Empresarial</a></li>
-                        <li><a href="mision_colaborativo.jsp"><i class="fas fa-bullseye"></i> Mision Corporativa</a></li>
-                        <li><a href="vision_colaborativo.jsp"><i class="fas fa-eye"></i> Vision Estrategica</a></li>
-                        <li><a href="valores_colaborativo.jsp"><i class="fas fa-heart"></i> Valores Organizacionales</a></li>
-                        <li><a href="objetivos_colaborativo.jsp"><i class="fas fa-target"></i> Objetivos Estrategicos</a></li>
-                    </ul>
-                </div>
-                <div class="nav-section">
-                    <div class="nav-section-title">Analisis Estrategico</div>
-                    <ul>
-                        <li><a href="analisis_externo_colaborativo.jsp"><i class="fas fa-search"></i> Analisis del Entorno</a></li>
-                        <li><a href="analisis_interno_colaborativo.jsp"><i class="fas fa-chart-bar"></i> Analisis Organizacional</a></li>
-                    </ul>
-                </div>
-                <div class="nav-section">
-                    <div class="nav-section-title">Herramientas de Gestion</div>
-                    <ul>
-                        <li><a href="cadena_valor_colaborativo.jsp"><i class="fas fa-link"></i> Cadena de Valor</a></li>
-                        <li><a href="matriz_participacion_colaborativo.jsp"><i class="fas fa-users"></i> Matriz de Participacion</a></li>
-                        <li class="active"><a href="autodiagnostico_BCG.jsp"><i class="fas fa-chart-pie"></i> Autodiagnostico BCG</a></li>
-                        <li><a href="resumen-ejecutivo-colaborativo.jsp"><i class="fas fa-file-alt"></i> Resumen Ejecutivo</a></li>
-                    </ul>
-                </div>
-                <div class="nav-section">
-                    <div class="nav-section-title">Sistema</div>
-                    <ul>
-                        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesi�n</a></li>
-                    </ul>
-                </div>
-            </nav>
+    <div class="nav-section">
+        <div class="nav-section-title">Principal</div>
+        <ul>
+            <li><a href="dashboard.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <div class="nav-section-title">Planificación Estratégica</div>
+        <ul>
+            <li><a href="empresa_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-building"></i> Información Empresarial</a></li>
+            <li><a href="mision_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-bullseye"></i> Misión Corporativa</a></li>
+            <li><a href="vision_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-eye"></i> Visión Estratégica</a></li>
+            <li><a href="valores_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-heart"></i> Valores Organizacionales</a></li>
+            <li><a href="objetivos_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-target"></i> Objetivos Estratégicos</a></li>
+        </ul>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Análisis Estratégico</div>
+        <ul>
+            <li><a href="analisis_externo_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-search"></i> Análisis del Entorno</a></li>
+            <li><a href="analisis_interno_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-chart-bar"></i> Análisis Organizacional</a></li>
+        </ul>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Herramientas de Gestión</div>
+        <ul>
+            <li><a href="cadena_valor_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-link"></i> Cadena de Valor</a></li>
+            <li><a href="matriz_participacion_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-users"></i> Matriz de Participación</a></li>
+            <li class="active"><a href="autodiagnostico_BCG.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-chart-pie"></i> Autodiagnostico BCG</a></li>
+            
+            <%-- Enlaces faltantes agregados --%>
+            <li><a href="matriz_porter.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-industry"></i> Matriz de Porter</a></li>
+            <li><a href="analisis_porter_colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-industry"></i> Análisis de Porter</a></li>
+            <li><a href="ANÁLISIS EXTERNO MACROENTORNO_PEST.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-industry"></i> Análisis PEST</a></li>
+            <li><a href="IDENTIFICACIÓN DE ESTRATEGIAS.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-industry"></i> Estrategias</a></li>
+            <li><a href="MATRIZ CAME.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-industry"></i> Matriz CAME</a></li>
+            
+            <li><a href="resumen-ejecutivo-colaborativo.jsp<%= modoColaborativo ? "?modo=colaborativo&grupo=" + grupoActual + "&rol=" + rolUsuario : "?modo=individual" %>"><i class="fas fa-file-alt"></i> Resumen Ejecutivo</a></li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <div class="nav-section-title">Sistema</div>
+        <ul>
+            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+        </ul>
+    </div>
+</nav>
         </div>
 
         <!-- Contenido Principal -->
@@ -2395,13 +2437,7 @@
             console.log('💾 Demanda a guardar:', demandaData);
             console.log('💾 Demanda JSON:', JSON.stringify(demandaData));
             
-            // Recopilar datos FODA
-            const fodaData = {
-                fortaleza3: document.getElementById('fortaleza3').value,
-                fortaleza4: document.getElementById('fortaleza4').value,
-                debilidad3: document.getElementById('debilidad3').value,
-                debilidad4: document.getElementById('debilidad4').value
-            };
+            // Los campos FODA se enviarán directamente
             
             // Enviar datos al servidor
             const form = document.createElement('form');
@@ -2450,11 +2486,26 @@
             demandaInput.value = JSON.stringify(demandaData);
             form.appendChild(demandaInput);
             
-            // Agregar datos FODA
-            const fodaInput = document.createElement('input');
-            fodaInput.name = 'foda_data';
-            fodaInput.value = JSON.stringify(fodaData);
-            form.appendChild(fodaInput);
+            // Agregar datos FODA individuales
+            const f3Input = document.createElement('input');
+            f3Input.name = 'fortaleza3';
+            f3Input.value = document.getElementById('fortaleza3').value;
+            form.appendChild(f3Input);
+            
+            const f4Input = document.createElement('input');
+            f4Input.name = 'fortaleza4';
+            f4Input.value = document.getElementById('fortaleza4').value;
+            form.appendChild(f4Input);
+            
+            const d3Input = document.createElement('input');
+            d3Input.name = 'debilidad3';
+            d3Input.value = document.getElementById('debilidad3').value;
+            form.appendChild(d3Input);
+            
+            const d4Input = document.createElement('input');
+            d4Input.name = 'debilidad4';
+            d4Input.value = document.getElementById('debilidad4').value;
+            form.appendChild(d4Input);
             
             // Agregar acción
             const accionInput = document.createElement('input');
@@ -2623,18 +2674,23 @@
                 }
             <% } %>
             
-            <% if (modoColaborativo && !datosFoda.isEmpty()) { %>
-                try {
-                    const fodaGuardados = JSON.parse('<%= datosFoda.replace("'", "\\'") %>');
-                    Object.keys(fodaGuardados).forEach(key => {
-                        const input = document.getElementById(key);
-                        if (input) {
-                            input.value = fodaGuardados[key];
-                        }
-                    });
-                } catch (e) {
-                    console.log('Error cargando datos FODA:', e);
-                }
+            <% if (modoColaborativo) { %>
+                <% if (!fortaleza3Guardada.isEmpty()) { %>
+                    const f3Input = document.getElementById('fortaleza3');
+                    if (f3Input) f3Input.value = '<%= fortaleza3Guardada.replace("'", "\\'").replace("\n", "\\n").replace("\r", "") %>';
+                <% } %>
+                <% if (!fortaleza4Guardada.isEmpty()) { %>
+                    const f4Input = document.getElementById('fortaleza4');
+                    if (f4Input) f4Input.value = '<%= fortaleza4Guardada.replace("'", "\\'").replace("\n", "\\n").replace("\r", "") %>';
+                <% } %>
+                <% if (!debilidad3Guardada.isEmpty()) { %>
+                    const d3Input = document.getElementById('debilidad3');
+                    if (d3Input) d3Input.value = '<%= debilidad3Guardada.replace("'", "\\'").replace("\n", "\\n").replace("\r", "") %>';
+                <% } %>
+                <% if (!debilidad4Guardada.isEmpty()) { %>
+                    const d4Input = document.getElementById('debilidad4');
+                    if (d4Input) d4Input.value = '<%= debilidad4Guardada.replace("'", "\\'").replace("\n", "\\n").replace("\r", "") %>';
+                <% } %>
             <% } %>
             
             // Mostrar información del modo actual

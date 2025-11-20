@@ -862,7 +862,7 @@
                     <ul>
                         <li><a href="analisis_externo_colaborativo.jsp"><i class="fas fa-search"></i> Análisis del Entorno</a></li>
                         <li><a href="analisis_interno_colaborativo.jsp"><i class="fas fa-chart-bar"></i> Análisis Organizacional</a></li>
-                      
+                       
                     </ul>
                 </div>
                 <div class="nav-section">
@@ -871,6 +871,14 @@
                         <li><a href="cadena_valor_colaborativo.jsp"><i class="fas fa-link"></i> Cadena de Valor</a></li>
                         <li><a href="matriz_participacion_colaborativo.jsp"><i class="fas fa-users"></i> Matriz de Participación</a></li>
                          <li><a href="autodiagnostico_BCG.jsp"><i class="fas fa-users"></i> autodiagnostico_BCG</a></li>
+                         <li><a href="matriz_porter.jsp"><i class="fas fa-industry"></i> Matriz de Porter</a></li>
+                         <li><a href="analisis_porter_colaborativo.jsp"><i class="fas fa-industry"></i> Análisis de Porter</a></li>
+                         <li><a href="ANÁLISIS EXTERNO MACROENTORNO_PEST.jsp"><i class="fas fa-industry"></i> Análisis PEST</a></li>
+                         <li><a href="IDENTIFICACIÓN DE ESTRATEGIAS.jsp"><i class="fas fa-industry"></i> Estrategias</a></li>
+                         <li><a href="MATRIZ CAME.jsp"><i class="fas fa-industry"></i> Matriz CAME</a></li>
+                        
+
+                        
 
                         <li><a href="resumen-ejecutivo-colaborativo.jsp"><i class="fas fa-file-alt"></i> Resumen Ejecutivo</a></li>
                     </ul>
